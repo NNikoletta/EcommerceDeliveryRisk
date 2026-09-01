@@ -66,12 +66,13 @@ def save_manifest(manifest_name: str, manifest: dict) -> None:
     file_path = manifests_data_dir / manifest_name
 
     if file_path.is_file():
-        raise FileExistsError(
-            f"Manifest under the name: '{manifest_name}' already exists."
-        )
+        print(f"Manifest under the name: '{manifest_name}' already exists.")
+        return None
     else:
         with file_path.open("w", encoding="utf-8") as json_file:
             json.dump(manifest, json_file, indent=2)
         print("Manifest has been saved successfully.")
+
+    return None
 
 
