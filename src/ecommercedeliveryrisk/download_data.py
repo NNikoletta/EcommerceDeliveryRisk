@@ -9,10 +9,13 @@ from src.ecommercedeliveryrisk.utils import ensure_dir
 from src.ecommercedeliveryrisk.checksums import calculate_local_sha256
 
 
-def download_raw_data(replace_existing: bool = False) -> dict | None:
+def download_raw_data(replace_existing: bool = False, manifest_name: str='raw_data_manifest.json') -> dict | None:
     expected_files = asdict(ExpectedFiles())
     manifest = {}
+    manifest_path = manifests_data_dir / manifest_name
+
     ensure_dir(raw_data_dir)
+    ensure_dir(manifests_data_dir)
 
     api = KaggleApi()
     api.authenticate()
@@ -22,6 +25,8 @@ def download_raw_data(replace_existing: bool = False) -> dict | None:
         api.dataset_download_files(dataset=kaggle_dataset_name, path=raw_data_dir, unzip=True)
         dataset_metadata = api.dataset_list_files(kaggle_dataset_name).to_dict()['datasetFiles']
         print(f"Kaggle's '{kaggle_dataset_name}' dataset has been downloaded successfully.")
+        if manifest_path.is_file():
+            manifest_path.unlink()
     else:
         if replace_existing:
             print(f"Directory is not empty and will be overwritten.")
@@ -32,6 +37,8 @@ def download_raw_data(replace_existing: bool = False) -> dict | None:
             api.dataset_download_files(dataset=kaggle_dataset_name, path=raw_data_dir, unzip=True)
             dataset_metadata = api.dataset_list_files(kaggle_dataset_name).to_dict()['datasetFiles']
             print(f"Kaggle's '{kaggle_dataset_name}' dataset has been replaced successfully.")
+            if manifest_path.is_file():
+                manifest_path.unlink()
         else:
             print(f"Directory is not empty and will not be overwritten.")
             return None
@@ -57,7 +64,7 @@ def download_raw_data(replace_existing: bool = False) -> dict | None:
                                  'download_time': download_time,
                                  'dataset_created': creation_date}
 
-    save_manifest(manifest_name='raw_data_manifest.json', manifest=manifest)
+    save_manifest(manifest_name=manifest_name, manifest=manifest)
     return None
 
 
