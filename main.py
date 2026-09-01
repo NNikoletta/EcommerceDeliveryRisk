@@ -1,7 +1,8 @@
+from src.ecommercedeliveryrisk.download_data import download_raw_data
 
 
 def main() -> None:
-    print('Hello world')
+    download_raw_data()
 
 
 if __name__ == "__main__":
