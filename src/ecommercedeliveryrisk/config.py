@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class ExpectedDatasets:
+class ExpectedFiles:
     customers: str = "olist_customers_dataset.csv"
     geolocation: str = "olist_geolocation_dataset.csv"
     order_items: str = "olist_order_items_dataset.csv"
@@ -19,8 +19,8 @@ class ExpectedDatasets:
 
 project_root = Path(__file__).resolve().parents[2]
 raw_data_dir = project_root / "data" / "raw"
+manifests_data_dir = project_root / "data" / "manifests"
 kaggle_dataset_name = "olistbr/brazilian-ecommerce"
-
 
 load_dotenv()
 KAGGLE_USERNAME = os.getenv("KAGGLE_USERNAME")
