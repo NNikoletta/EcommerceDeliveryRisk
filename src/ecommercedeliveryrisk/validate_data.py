@@ -2,8 +2,8 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
-from src.ecommercedeliveryrisk.config import raw_data_dir, manifests_data_dir, ExpectedFiles
-from src.ecommercedeliveryrisk.checksums import calculate_local_sha256
+from ecommercedeliveryrisk.config import raw_data_dir, manifests_data_dir, ExpectedFiles
+from ecommercedeliveryrisk.checksums import calculate_local_sha256
 
 def validate_raw_data() -> None:
     manifest = 'raw_data_manifest.json'

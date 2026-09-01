@@ -20,7 +20,6 @@ class ExpectedFiles:
 project_root = Path(__file__).resolve().parents[2]
 raw_data_dir = project_root / "data" / "raw"
 manifests_data_dir = project_root / "data" / "manifests"
-kaggle_dataset_name = "olistbr/brazilian-ecommerce"
 
 load_dotenv()
 KAGGLE_USERNAME = os.getenv("KAGGLE_USERNAME")
