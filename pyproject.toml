@@ -1,14 +1,13 @@
 [project]
 name = "ecommercedeliveryrisk"
 version = "0.1.0"
-description = "Add your description here"
+description = "This project aims to implement an end-to-end pipeline for delivery risk prediction using the Brazilian E-Commerce Olist dataset that is publicly available on Kaggle."
 readme = "README.md"
 authors = [
     { name = "Nikoletta", email = "nikolettanod@gmail.com" }
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "dotenv>=0.9.9",
     "kaggle>=2.2.4",
     "numpy>=2.5.2",
     "pandas>=3.0.5",

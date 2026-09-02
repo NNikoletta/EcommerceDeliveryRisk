@@ -4,7 +4,7 @@
 
 **Project:** E-commerce delivery Risk Prediction
 
-**Repository:** 'NNikoletta/DeliveryRiskPrediction'
+**Repository:** 'NNikoletta/EcommerceDeliveryRisk'
 
 ## Objective
 
@@ -18,6 +18,6 @@ The prediction contract defines the boundary between legal features and future i
 
 **Prediction contract:** At the time an order is **approved** predict if it will arrive **after** the promised delivery date.
 
-This ensures that everything become relative to the time of approval and all data is handled in a way that would not cause data leakage.
+This ensures that everything becomes relative to the time of approval and all data is handled in a way that would not cause data leakage.
 
 As a consequence of the prediction contract, only the orders that are placed and/or received before the examined entry can be used for learning. These entries are treated as historical data.

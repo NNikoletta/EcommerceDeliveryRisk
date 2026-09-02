@@ -6,7 +6,7 @@ from ecommercedeliveryrisk.config import raw_data_dir, manifests_data_dir, Expec
 from ecommercedeliveryrisk.checksums import calculate_local_sha256
 
 def validate_raw_data() -> None:
-    manifest = 'raw_data_manifest.json'
+    manifest = 'benchmark_raw_data_manifest.json'
     config = asdict(ExpectedFiles())
     expected_file_count = len(list([i for i in config.keys()]))
 
@@ -29,11 +29,15 @@ def validate_raw_data() -> None:
 
     manifest_path = Path(manifests_data_dir / manifest)
     with manifest_path.open("r") as json_file:
-        data = json.load(json_file)
+        manifest_data = json.load(json_file)
 
     for key, file_name in config.items():
         file_path = raw_data_dir / file_name
-        if data[key]['sha256'] != calculate_local_sha256(file_path):
+        if manifest_data[key]['size_byte'] != file_path.stat().st_size:
+            raise ValueError(f"The size of the '{file_name}' file does not match the expected size.\n"
+                             f"Expected size is {manifest_data[key]['size_byte']} bytes.\n"
+                             f"Found size {file_path.stat().st_size} bytes.")
+        if manifest_data[key]['sha256'] != calculate_local_sha256(file_path):
             raise ValueError("The SHA-256 hash doesn't match the expected value.")
 
     print("Datasets successfully validated.")

@@ -1,74 +1,96 @@
 {
+  "dataset_metadata": {
+    "dataset_name": "olistbr/brazilian-ecommerce",
+    "dataset_version": 2
+  },
   "customers": {
     "file_name": "olist_customers_dataset.csv",
+    "dataset": "olistbr/brazilian-ecommerce",
+    "dataset_version": 2,
     "file_path": "data/raw/olist_customers_dataset.csv",
     "sha256": "983a422239e1712ded753b3bf9ecf47dc73f144d306029dcfa99e70a226883d2",
     "size_byte": 9033957,
-    "download_time": "2026-09-01 23:26:02",
+    "download_time": "2026-09-02T19:14:01.756503Z",
     "dataset_created": "2021-10-01T19:08:30.909Z"
   },
   "geolocation": {
     "file_name": "olist_geolocation_dataset.csv",
+    "dataset": "olistbr/brazilian-ecommerce",
+    "dataset_version": 2,
     "file_path": "data/raw/olist_geolocation_dataset.csv",
     "sha256": "b514f6fc991b9566aeba02aa5d67e2c3630f034b60a0e05aa0d082a3b66d88d6",
     "size_byte": 61273883,
-    "download_time": "2026-09-01 23:26:02",
+    "download_time": "2026-09-02T19:14:01.756503Z",
     "dataset_created": "2021-10-01T19:08:32.253Z"
   },
   "order_items": {
     "file_name": "olist_order_items_dataset.csv",
+    "dataset": "olistbr/brazilian-ecommerce",
+    "dataset_version": 2,
     "file_path": "data/raw/olist_order_items_dataset.csv",
     "sha256": "0bc4d068c4fe38cbb01bd90e8746e3c613fe7b4baef75fab7b0e329701c3e279",
     "size_byte": 15438671,
-    "download_time": "2026-09-01 23:26:02",
+    "download_time": "2026-09-02T19:14:01.756503Z",
     "dataset_created": "2021-10-01T19:08:31.594Z"
   },
   "order_payments": {
     "file_name": "olist_order_payments_dataset.csv",
+    "dataset": "olistbr/brazilian-ecommerce",
+    "dataset_version": 2,
     "file_path": "data/raw/olist_order_payments_dataset.csv",
     "sha256": "4f713964f2815dbbaa40b9488268c55aac3627bfce5aa96cf58d1f3616de3cc0",
     "size_byte": 5777138,
-    "download_time": "2026-09-01 23:26:02",
+    "download_time": "2026-09-02T19:14:01.756503Z",
     "dataset_created": "2021-10-01T19:08:31.287Z"
   },
   "order_reviews": {
     "file_name": "olist_order_reviews_dataset.csv",
+    "dataset": "olistbr/brazilian-ecommerce",
+    "dataset_version": 2,
     "file_path": "data/raw/olist_order_reviews_dataset.csv",
     "sha256": "012b61c7593e34f51fa614efdf802b9c7056ce6aae5307ddb93236e7cfc797d7",
     "size_byte": 14451670,
-    "download_time": "2026-09-01 23:26:02",
+    "download_time": "2026-09-02T19:14:01.756503Z",
     "dataset_created": "2021-10-01T19:08:31.470Z"
   },
   "orders": {
     "file_name": "olist_orders_dataset.csv",
+    "dataset": "olistbr/brazilian-ecommerce",
+    "dataset_version": 2,
     "file_path": "data/raw/olist_orders_dataset.csv",
     "sha256": "8df58ef3d2d7e9944010f7beecd9b75367f5588ec6e3c91cec19ae3345ef9ecf",
     "size_byte": 17654914,
-    "download_time": "2026-09-01 23:26:02",
+    "download_time": "2026-09-02T19:14:01.756503Z",
     "dataset_created": "2021-10-01T19:08:31.717Z"
   },
   "products": {
     "file_name": "olist_products_dataset.csv",
+    "dataset": "olistbr/brazilian-ecommerce",
+    "dataset_version": 2,
     "file_path": "data/raw/olist_products_dataset.csv",
     "sha256": "3e6569628a17fbc75fd206ee357b59e20364b9afa90f5b6cd5b4d624c58aa9cc",
     "size_byte": 2379446,
-    "download_time": "2026-09-01 23:26:02",
+    "download_time": "2026-09-02T19:14:01.756503Z",
     "dataset_created": "2021-10-01T19:08:31.335Z"
   },
   "sellers": {
     "file_name": "olist_sellers_dataset.csv",
+    "dataset": "olistbr/brazilian-ecommerce",
+    "dataset_version": 2,
     "file_path": "data/raw/olist_sellers_dataset.csv",
     "sha256": "1f643d2b950373b85735e7794b20986f528d7a000432e7c6f9bcbb44d0846a0e",
     "size_byte": 174703,
-    "download_time": "2026-09-01 23:26:02",
+    "download_time": "2026-09-02T19:14:01.756503Z",
     "dataset_created": "2021-10-01T19:08:31.267Z"
   },
   "translation": {
     "file_name": "product_category_name_translation.csv",
+    "dataset": "olistbr/brazilian-ecommerce",
+    "dataset_version": 2,
     "file_path": "data/raw/product_category_name_translation.csv",
     "sha256": "a81f0d1f27b27e7293f761bc79e3ce8f348ee39c4b3ed3e49bde38f478586278",
     "size_byte": 2613,
-    "download_time": "2026-09-01 23:26:02",
+    "download_time": "2026-09-02T19:14:01.756503Z",
     "dataset_created": "2021-10-01T19:08:31.203Z"
   }
 }

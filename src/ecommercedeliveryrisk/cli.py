@@ -2,5 +2,5 @@ from ecommercedeliveryrisk.download_data import download_raw_data
 from ecommercedeliveryrisk.validate_data import validate_raw_data
 
 def main() -> None:
-    download_raw_data()
+    download_raw_data(True)
     validate_raw_data()

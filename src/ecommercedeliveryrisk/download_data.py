@@ -9,18 +9,33 @@ from ecommercedeliveryrisk.utils import ensure_dir
 from ecommercedeliveryrisk.checksums import calculate_local_sha256
 
 
-def download_raw_data(replace_existing: bool = False, manifest_name: str='raw_data_manifest.json') -> dict | None:
-    expected_files = asdict(ExpectedFiles())
-    manifest = {}
+def download_raw_data(replace_existing: bool = False, manifest_name: str='benchmark_raw_data_manifest.json') -> dict | None:
     ensure_dir(raw_data_dir)
 
     api = KaggleApi()
     api.authenticate()
 
+    def download(version_data=None) -> tuple[str, dict, float|int]:
+        time = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        if version_data is None:
+            version_data = json.loads(api.dataset_status(dataset=KAGGLE_DATASET, format='json(current_version_number)'))
+            version_data = version_data['current_version_number']
+            pinned_dataset = f"{KAGGLE_DATASET}/{version_data}"
+        else:
+            pinned_dataset = f"{KAGGLE_DATASET}/{version_data}"
+        api.dataset_download_files(dataset=pinned_dataset, path=raw_data_dir, unzip=True)
+        all_csv_metadata = api.dataset_list_files(pinned_dataset).to_dict()['datasetFiles']
+        return time, all_csv_metadata, version_data
+
     if not any(raw_data_dir.iterdir()):
-        download_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-        api.dataset_download_files(dataset=KAGGLE_DATASET, path=raw_data_dir, unzip=True)
-        dataset_metadata = api.dataset_list_files(KAGGLE_DATASET).to_dict()['datasetFiles']
+        if (manifests_data_dir / "benchmark_raw_data_manifest.json").is_file():
+            print("Benchmark manifest found, downloading dataset accordingly.")
+            with (manifests_data_dir / "benchmark_raw_data_manifest.json").open("r") as json_file:
+                benchmark = json.load(json_file)
+                download_time, dataset_metadata, version_number = download(benchmark['dataset_metadata']['dataset_version'])
+        else:
+            print("Benchmark is not available, downloading dataset and creating benchmark.")
+            download_time, dataset_metadata, version_number = download()
         print(f"Kaggle's '{KAGGLE_DATASET}' dataset has been downloaded successfully.")
     else:
         if replace_existing:
@@ -28,14 +43,28 @@ def download_raw_data(replace_existing: bool = False, manifest_name: str='raw_da
             for file in raw_data_dir.iterdir():
                 if file.is_file():
                     file.unlink()
-            download_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-            api.dataset_download_files(dataset=KAGGLE_DATASET, path=raw_data_dir, unzip=True)
-            dataset_metadata = api.dataset_list_files(KAGGLE_DATASET).to_dict()['datasetFiles']
+            if (manifests_data_dir/"benchmark_raw_data_manifest.json").is_file():
+                with (manifests_data_dir/"benchmark_raw_data_manifest.json").open("r") as json_file:
+                    benchmark = json.load(json_file)
+                    download_time, dataset_metadata, version_number = download(benchmark['dataset_metadata']['dataset_version'])
+            else:
+                print("Benchmark is not available, downloading dataset and creating benchmark.")
+                download_time, dataset_metadata, version_number = download()
             print(f"Kaggle's '{KAGGLE_DATASET}' dataset has been replaced successfully.")
         else:
             print(f"Directory is not empty and will not be overwritten.")
             return None
 
+    manifest = create_manifest(dataset_metadata, version_number, download_time)
+    save_manifest(manifest_name=manifest_name, manifest=manifest)
+    return None
+
+
+def create_manifest(dataset_metadata: dict, version_number: float|int, download_time: str) -> dict:
+    manifest = dict()
+    manifest['dataset_metadata'] = {'dataset_name': KAGGLE_DATASET,
+                                    'dataset_version': version_number}
+    expected_files = asdict(ExpectedFiles())
     for file_id, file_name in expected_files.items():
         file_path = raw_data_dir / file_name
         if file_path.is_file():
@@ -51,14 +80,15 @@ def download_raw_data(replace_existing: bool = False, manifest_name: str='raw_da
                             f"Found size: {file_path.stat().st_size} byte")
 
             manifest[file_id] = {'file_name': file_name,
+                                 'dataset': KAGGLE_DATASET,
+                                 'dataset_version': version_number,
                                  'file_path': str(file_path.relative_to(project_root).as_posix()),
                                  'sha256': calculate_local_sha256(file_path),
                                  'size_byte': size_byte,
                                  'download_time': download_time,
                                  'dataset_created': creation_date}
 
-    save_manifest(manifest_name=manifest_name, manifest=manifest)
-    return None
+    return manifest
 
 
 def save_manifest(manifest_name: str, manifest: dict) -> None:
@@ -66,13 +96,19 @@ def save_manifest(manifest_name: str, manifest: dict) -> None:
     file_path = manifests_data_dir / manifest_name
 
     if file_path.is_file():
-        print(f"Manifest under the name: '{manifest_name}' already exists.")
-        return None
+        print(f"Manifest under the name: '{manifest_name}' already exists; new manifest will be saved as 'tmp_raw_data_manifest.json'.")
+        manifest_name = "tmp_raw_data_manifest.json"
+        file_path = manifests_data_dir / manifest_name
+        if file_path.is_file():
+            print(f"Temporary manifest already exists and will be overwritten with the newly created manifest.")
+            file_path.unlink()
+        with file_path.open("w", encoding="utf-8") as json_file:
+            json.dump(manifest, json_file, indent=2)
+        print("Manifest has been saved successfully.")
     else:
         with file_path.open("w", encoding="utf-8") as json_file:
             json.dump(manifest, json_file, indent=2)
         print("Manifest has been saved successfully.")
 
     return None
-
 
