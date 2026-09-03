@@ -29,3 +29,4 @@ The following rules apply throughout this project:
 9. Results must be reported with enough metadata to identify the dataset and the data used for training, validation and testing. The data includes the source-code version, configuration, software environment, and random seeds.
 10. Before starting the first ML experiments, an MLFlow connection must be made for easy tracking.
 11. All experiments are conducted according to the [prediction contract](./problem_definition.md) which defines the boundaries between legal features and future information.
+12. All predictions must fall in the range defined by the [prediction unit](./problem_definition.md); the prediction unit can be converted to \[%\] to represent chance instead of probability.

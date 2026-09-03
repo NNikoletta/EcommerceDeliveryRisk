@@ -21,3 +21,5 @@ The prediction contract defines the boundary between legal features and future i
 This ensures that everything becomes relative to the time of approval and all data is handled in a way that would not cause data leakage.
 
 As a consequence of the prediction contract, only the orders that are placed and/or received before the examined entry can be used for learning. These entries are treated as historical data.
+
+**Prediction unit:** The prediction unit must be the probability of an order arriving late with 0 marking the orders arriving on time, and 1 marking the orders that will be definitely late.

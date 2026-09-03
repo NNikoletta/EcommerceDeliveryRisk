@@ -36,7 +36,7 @@ def validate_raw_data(data_dir: Path=None) -> None:
 
     for key, file_name in config.items():
         file_path = data_dir / file_name
-        if file_name != manifest_data[key]['file_name']:
+        if file_path.name != manifest_data[key]['file_name']:
             raise FileNotFoundError(f"File name does not match the expected file name.\n"
                                     f"Expected {manifest_data[key]['file_name']}\n"
                                     f"Found {file_name}.")
