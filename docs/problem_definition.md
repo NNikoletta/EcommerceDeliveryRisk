@@ -31,5 +31,5 @@ An order is only able to contribute outcome-based features if its outcome was kn
 * 0: order arrives on time
 * 1: order arrives late
 
-**Target formula:** an order can be considered late if it arrived after the estimated delivery data.
+**Target formula:** order_delivered_customer_date > order_estimated_delivery_date: an order can be considered late if it arrived after the estimated delivery data.
 
