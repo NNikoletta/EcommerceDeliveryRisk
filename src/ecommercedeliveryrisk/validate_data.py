@@ -27,8 +27,8 @@ def validate_raw_data(data_dir=None, manifest_dir=None) -> None:
     file_count = len(list(data_dir.iterdir()))
 
     if file_count != expected_file_count:
-        raise FileNotFoundError(f"Found {data_dir} files in {data_dir}.\n"
-                                f"                   Expected file count is {expected_file_count}.")
+        raise FileNotFoundError(f"Found {file_count} files in {data_dir}.\n"
+                                f"Expected file count is {expected_file_count}.")
 
     for key, file_name in config.items():
         file_path = data_dir / file_name

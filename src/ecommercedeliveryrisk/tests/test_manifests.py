@@ -155,9 +155,9 @@ def test_save_manifest_overwrites_existing_manifest(tmp_path) -> None:
                                   manifest=new_tmp_manifest,
                                   input_manifest_data_dir=test_manifest_dir)
 
-    saved_benchmarl = json.loads(benchmark_path.read_text(encoding="utf-8"))
+    saved_benchmark = json.loads(benchmark_path.read_text(encoding="utf-8"))
 
-    assert saved_benchmarl == original_manifest
+    assert saved_benchmark == original_manifest
 
     assert temporary_manifest_path.is_file()
 
