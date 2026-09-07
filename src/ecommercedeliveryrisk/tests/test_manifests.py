@@ -54,7 +54,8 @@ def test_create_manifest(tmp_path, monkeypatch) -> None:
                                      'download_time': download_time,
                                      'dataset_created': '2026-01-01T00:00:00Z',
                                      'column_count': 2,
-                                     'row_count': 2}
+                                     'row_count': 2,
+                                     'expected_columns': ['order_id', 'status']}
                          }
 
     assert manifest == expected_manifest

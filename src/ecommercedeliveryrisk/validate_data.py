@@ -81,47 +81,47 @@ def validate_raw_data(data_dir=None, manifest_dir=None) -> None:
             if tmp_manifest_data[key]['file_name'] != manifest_data[key]['file_name']:
                 raise ValueError(f"The manifest data does not match the expected manifest data.\n"
                                  f"Expected file name: {manifest_data[key]['file_name']}\n"
-                                 f"Found file name in tmp manifest: {manifest_data[key]['file_name']}\n")
+                                 f"Found file name in tmp manifest: {tmp_manifest_data[key]['file_name']}\n")
 
             if tmp_manifest_data[key]['dataset'] != manifest_data[key]['dataset']:
                 raise ValueError(f"The manifest data does not match the expected manifest data.\n"
                                  f"Expected dataset name: {manifest_data[key]['dataset']}\n"
-                                 f"Found dataset name in tmp manifest: {manifest_data[key]['dataset']}\n")
+                                 f"Found dataset name in tmp manifest: {tmp_manifest_data[key]['dataset']}\n")
 
             if tmp_manifest_data[key]['dataset_version'] != manifest_data[key]['dataset_version']:
                 raise ValueError(f"The manifest data does not match the expected manifest data.\n"
                                  f"Expected dataset version: {manifest_data[key]['dataset_version']}\n"
-                                 f"Found dataset version in tmp manifest: {manifest_data[key]['dataset_version']}\n")
+                                 f"Found dataset version in tmp manifest: {tmp_manifest_data[key]['dataset_version']}\n")
 
             if tmp_manifest_data[key]['sha256'] != manifest_data[key]['sha256']:
                 raise ValueError(f"The manifest data does not match the expected manifest data.\n"
                                  f"Expected sha256: {manifest_data[key]['sha256']}\n"
-                                 f"Found sha256 in tmp manifest: {manifest_data[key]['sha256']}\n")
+                                 f"Found sha256 in tmp manifest: {tmp_manifest_data[key]['sha256']}\n")
 
             if tmp_manifest_data[key]['size_byte'] != manifest_data[key]['size_byte']:
                 raise ValueError(f"The manifest data does not match the expected manifest data.\n"
                                  f"Expected size in bytes: {manifest_data[key]['size_byte']}\n"
-                                 f"Found size in bytes in tmp manifest: {manifest_data[key]['size_byte']}\n")
+                                 f"Found size in bytes in tmp manifest: {tmp_manifest_data[key]['size_byte']}\n")
 
             if tmp_manifest_data[key]['dataset_created'] != manifest_data[key]['dataset_created']:
                 raise ValueError(f"The manifest data does not match the expected manifest data.\n"
                                  f"Expected date of creation: {manifest_data[key]['dataset_created']}\n"
-                                 f"Found date of creation in tmp manifest: {manifest_data[key]['dataset_created']}\n")
+                                 f"Found date of creation in tmp manifest: {tmp_manifest_data[key]['dataset_created']}\n")
 
             if tmp_manifest_data[key]['column_count'] != manifest_data[key]['column_count']:
                 raise ValueError(f"The manifest data does not match the expected manifest data.\n"
                                  f"Expected column count: {manifest_data[key]['column_count']}\n"
-                                 f"Found column count in tmp manifest: {manifest_data[key]['column_count']}\n")
+                                 f"Found column count in tmp manifest: {tmp_manifest_data[key]['column_count']}\n")
 
             if tmp_manifest_data[key]['row_count'] != manifest_data[key]['row_count']:
                 raise ValueError(f"The manifest data does not match the expected manifest data.\n"
                                  f"Expected row count: {manifest_data[key]['row_count']}\n"
-                                 f"Found row count in tmp manifest: {manifest_data[key]['row_count']}\n")
+                                 f"Found row count in tmp manifest: {tmp_manifest_data[key]['row_count']}\n")
 
             if tmp_manifest_data[key]['expected_columns'] != manifest_data[key]['expected_columns']:
                 raise ValueError(f"The manifest data does not match the expected manifest data.\n"
                                  f"Expected column names: {manifest_data[key]['expected_columns']}\n"
-                                 f"Found column names in tmp manifest: {manifest_data[key]['expected_columns']}\n")
+                                 f"Found column names in tmp manifest: {tmp_manifest_data[key]['expected_columns']}\n")
 
     print("Datasets successfully validated.")
 
