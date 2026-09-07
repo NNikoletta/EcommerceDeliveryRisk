@@ -82,7 +82,7 @@ def download_raw_data(input_raw_data_dir = None, replace_existing: bool = False,
     return None
 
 
-def create_manifest(dataset_metadata: dict, version_number: float|int, download_time: str, input_raw_data_dir=None) -> dict:
+def create_manifest(dataset_metadata: list[dict], version_number: float|int, download_time: str, input_raw_data_dir=None) -> dict:
     if input_raw_data_dir is None:
         input_raw_data_dir = raw_data_dir
     manifest = dict()
@@ -92,7 +92,8 @@ def create_manifest(dataset_metadata: dict, version_number: float|int, download_
     for file_id, file_name in expected_files.items():
         file_path = input_raw_data_dir / file_name
         if file_path.is_file():
-            column_count = len(pd.read_csv(file_path, nrows=0).columns.tolist())
+            expected_columns = pd.read_csv(file_path, nrows=0).columns.tolist()
+            column_count = len(expected_columns)
             row_count = pd.read_csv(file_path, usecols=[0]).shape[0]
             for metadata in dataset_metadata:
                 if metadata['name'] == file_name:
@@ -114,8 +115,8 @@ def create_manifest(dataset_metadata: dict, version_number: float|int, download_
                                  'download_time': download_time,
                                  'dataset_created': creation_date,
                                  'column_count': column_count,
-                                 'row_count': row_count}
-
+                                 'row_count': row_count,
+                                 'expected_columns': expected_columns}
     return manifest
 
 
@@ -139,6 +140,5 @@ def save_manifest(manifest_name: str, manifest: dict, input_manifest_data_dir=No
         with file_path.open("w", encoding="utf-8") as json_file:
             json.dump(manifest, json_file, indent=2)
         print("Manifest has been saved successfully.")
-
     return None
 
