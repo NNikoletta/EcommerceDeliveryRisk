@@ -21,7 +21,7 @@ def test_create_manifest(tmp_path, monkeypatch) -> None:
                          "1,delivered\n"
                          "2,shipped\n", encoding="utf-8")
 
-    download_time = "2026-09-07T12:00:00.000000Z"
+    download_date = "2026-09-07T12:00:00.000000Z"
 
     dataset_metadata = [{'name': 'orders.csv',
                          'creationDate': "2026-01-01T00:00:00Z",
@@ -40,7 +40,7 @@ def test_create_manifest(tmp_path, monkeypatch) -> None:
 
     manifest = download_module.create_manifest(dataset_metadata=dataset_metadata,
                                                 version_number=1,
-                                                download_time=download_time,
+                                                download_date=download_date,
                                                 input_raw_data_dir=test_raw_dir)
 
     expected_manifest = {'dataset_metadata': {'dataset_name': download_module.KAGGLE_DATASET,
@@ -51,7 +51,7 @@ def test_create_manifest(tmp_path, monkeypatch) -> None:
                                      'file_path': 'raw/orders.csv',
                                      'sha256': 'mock_sha256',
                                      'size_byte': test_file.stat().st_size,
-                                     'download_time': download_time,
+                                     'download_date': download_date,
                                      'dataset_created': '2026-01-01T00:00:00Z',
                                      'column_count': 2,
                                      'row_count': 2,
@@ -76,14 +76,14 @@ def test_create_manifest_raise_error_if_file_size_is_wrong(tmp_path, monkeypatch
                          'creationDate': "2026-01-01T00:00:00Z",
                          'totalBytes': test_file.stat().st_size + 1}]
 
-    download_time = "2026-09-07T12:00:00.000000Z"
+    download_date = "2026-09-07T12:00:00.000000Z"
 
     # noinspection unresolved-references
     monkeypatch.setattr(download_module, "ExpectedFiles", MockExpectedFiles)
 
     with pytest.raises(ValueError, match="file size does not match"):
         download_module.create_manifest(dataset_metadata=dataset_metadata, version_number=1,
-                                        download_time=download_time, input_raw_data_dir=test_raw_dir)
+                                        download_date=download_date, input_raw_data_dir=test_raw_dir)
 
 
 def test_save_manifest_creates_directory_and_file(tmp_path) -> None:

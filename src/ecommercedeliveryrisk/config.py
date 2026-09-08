@@ -4,6 +4,12 @@ from dotenv import load_dotenv
 from dataclasses import dataclass
 
 
+@dataclass
+class DownloadResults:
+    download_date: str
+    dataset_metadata: list[dict]
+    version_data: float
+
 @dataclass(frozen=True)
 class ExpectedFiles:
     customers: str = "olist_customers_dataset.csv"
@@ -18,6 +24,7 @@ class ExpectedFiles:
 
 
 project_root = Path(__file__).resolve().parents[2]
+
 raw_data_dir = project_root / "data" / "raw"
 manifests_data_dir = project_root / "data" / "manifests"
 
