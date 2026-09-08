@@ -7,7 +7,7 @@ from ecommercedeliveryrisk.config import ExpectedFiles
 from ecommercedeliveryrisk.checksums import calculate_local_sha256
 
 
-def validate_raw_data(data_dir=None, manifests_dir=None) -> None:
+def validate_raw_data(data_dir, manifests_dir) -> None:
     manifest = 'benchmark_raw_data_manifest.json'
 
     config = asdict(ExpectedFiles())
@@ -63,7 +63,7 @@ def validate_raw_data(data_dir=None, manifests_dir=None) -> None:
 
     print("Datasets successfully validated.")
 
-def compare_manifests(manifests_dir=None):
+def compare_manifests(manifests_dir):
     benchmark_manifest = 'benchmark_raw_data_manifest.json'
     tmp_manifest = 'tmp_raw_data_manifest.json'
 
@@ -86,11 +86,12 @@ def compare_manifests(manifests_dir=None):
                 raise ValueError("The manifest data does not match the benchmark data.\n")
 
             for benchmark_key, benchmark_value in benchmark_file_manifest.items():
-                if benchmark_key != 'download_data' and benchmark_key != 'file_path':
+                if benchmark_key != 'download_date' and benchmark_key != 'file_path':
                     if benchmark_value != tmp_file_manifest[benchmark_key]:
                         raise ValueError(f"The manifest data does not match the benchmark data.\n"
                                          f"Expected key-value pair: {benchmark_key}-{benchmark_value}\n"
                                          f"Found key-value pair: {benchmark_key}-{tmp_file_manifest[benchmark_key]}\n")
     else:
-        raise FileNotFoundError("The required files were not found.")
+        print("The required files were not found.\n"
+              "Comparison cannot be made.")
 

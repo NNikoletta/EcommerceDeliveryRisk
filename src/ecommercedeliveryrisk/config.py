@@ -74,26 +74,3 @@ def load_settings() -> Settings:
                     manifests_data_dir=manifests_data_dir)
 
 
-@dataclass(frozen=True)
-class PostgresSettings:
-    host: str
-    port: int
-    database: str
-    user: str
-    password: str
-
-    def __post_init__(self) -> None:
-        parts = self.kaggle_dataset.split("/")
-
-        if(len(parts) != 2
-           or not all(parts)
-           or any(character.isspace() for character in self.kaggle_dataset)):
-            raise ValueError("KAGGLE_DATASET must use the format 'owner/dataset'.")
-
-        for name, path in (("raw_data_dir", self.raw_data_dir),
-                           ("manifests_data_dir", self.manifests_data_dir)):
-            if not isinstance(path, Path):
-                raise TypeError(f"Expected {name} to be a Path object.")
-
-            if path.exists() and not path.is_dir():
-                raise ValueError(f"{name} must point to a directory: {path}")

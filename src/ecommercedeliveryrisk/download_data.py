@@ -142,7 +142,7 @@ def create_manifest(dataset_metadata: list[dict], dataset_version: int, download
     return manifest
 
 
-def save_manifest(manifest_name: str, manifest: dict, input_manifest_data_dir=None) -> None:
+def save_manifest(manifest_name: str, manifest: dict, input_manifest_data_dir) -> None:
     ensure_dir(input_manifest_data_dir)
     file_path = input_manifest_data_dir / manifest_name
 
