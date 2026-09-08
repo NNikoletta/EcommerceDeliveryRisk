@@ -12,6 +12,42 @@ class MockExpectedFiles:
     orders: str = "orders.csv"
     customers: str = "customers.csv"
 
+def test_validate_data_directory_does_not_exist(tmp_path, monkeypatch) -> None:
+    data_dir = tmp_path / "raw"
+    manifests_dir = tmp_path / "manifests"
+
+    # noinspection unresolved-references
+    monkeypatch.setattr(validation_module, "ExpectedFiles", MockExpectedFiles)
+    # noinspection unresolved-references
+    monkeypatch.setattr(validation_module, "raw_data_dir", data_dir)
+    # noinspection unresolved-references
+    monkeypatch.setattr(validation_module, "manifests_data_dir", manifests_dir)
+
+    with pytest.raises(FileNotFoundError) as exc_error:
+        validation_module.validate_raw_data(data_dir=data_dir, manifest_dir=manifests_dir)
+
+    assert str(exc_error.value) == (f"The file directory '{data_dir}' does not exist.")
+
+
+def test_validate_data_directory_exists_but_is_empty(tmp_path, monkeypatch) -> None:
+    data_dir = tmp_path / "raw"
+    manifests_dir = tmp_path / "manifests"
+
+    data_dir.mkdir()
+    manifests_dir.mkdir()
+
+    # noinspection unresolved-references
+    monkeypatch.setattr(validation_module, "ExpectedFiles", MockExpectedFiles)
+    # noinspection unresolved-references
+    monkeypatch.setattr(validation_module, "raw_data_dir", data_dir)
+    # noinspection unresolved-references
+    monkeypatch.setattr(validation_module, "manifests_data_dir", manifests_dir)
+
+    with pytest.raises(FileNotFoundError) as exc_error:
+        validation_module.validate_raw_data(data_dir=data_dir, manifest_dir=manifests_dir)
+
+    assert str(exc_error.value) == (f"The file directory '{data_dir}' does not contain any files.")
+
 def test_validate_data_wrong_file_count(tmp_path, monkeypatch) -> None:
     data_dir = tmp_path / "raw"
     manifests_dir = tmp_path / "manifests"

@@ -33,3 +33,9 @@ An order is only able to contribute outcome-based features if its outcome was kn
 
 **Target formula:** order_delivered_customer_date > order_estimated_delivery_date: an order can be considered late if it arrived after the estimated delivery date.
 
+**Canceled, unavailable, lost/never-delivered orders:** Orders from these categories will be completely excluded from the training pipeline since their presence may distort the delivery timeline. Orders may get canceled due to a client changing their mind, due to fraud, or due to lack of stock, among others.
+Orders may get lost in transit, or have the wrong shipping address, which is one of the many causes of items not being delivered. These orders need to be taken out of the main training pool, but they may be used for a separate risk prediction.
+
+**Train/Validate/Test split:** The splitting of the data must happen in a chronological manner with the oldest, historical, entries being the main building blocks of the training dataset.
+The validation dataset will be created from Mid Data, and the test split will be based on the Most Recent Data. The dataset contains orders placed between 2016 and 2018. The dataset will undergo the preprocessing stages to ensure any undelivered, canceled, lost packages are not included, and then will be split into train/validate/test in an 80/10/10 ratio in chronological order.
+
