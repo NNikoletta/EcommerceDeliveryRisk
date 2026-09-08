@@ -5,10 +5,10 @@ from dataclasses import dataclass
 
 
 @dataclass
-class DownloadResults:
+class DownloadResult:
     download_date: str
     dataset_metadata: list[dict]
-    version_data: float
+    dataset_version: int
 
 @dataclass(frozen=True)
 class ExpectedFiles:

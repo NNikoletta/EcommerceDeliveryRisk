@@ -144,7 +144,7 @@ def test_download_raw_data_directory_is_not_empty_replacement_disabled(tmp_path,
     download_module.download_raw_data(input_raw_data_dir=test_raw_dir, replace_existing=False)
 
     #  Asserts that all the expected function calls are made once and with the expected parameters
-    mock_api.authenticate.assert_called_once_with()
+    mock_api.authenticate.assert_not_called()
 
     mock_api.dataset_status.assert_not_called()
 

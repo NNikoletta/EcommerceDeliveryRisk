@@ -8,29 +8,29 @@ from pathlib import Path
 
 from ecommercedeliveryrisk.config import project_root
 from ecommercedeliveryrisk.config import  (raw_data_dir, KAGGLE_DATASET, ExpectedFiles,
-                                           manifests_data_dir, DownloadResults)
+                                           manifests_data_dir, DownloadResult)
 from ecommercedeliveryrisk.utils import ensure_dir
 from ecommercedeliveryrisk.checksums import calculate_local_sha256
 from ecommercedeliveryrisk.validate_data import validate_raw_data
 
 
-def download_kaggle_dataset(data_dir, version_data=None) -> DownloadResults:
+def download_kaggle_dataset(data_dir, dataset_version=None) -> DownloadResult:
     api = KaggleApi()
     api.authenticate()
 
     time = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-    if version_data is None:
-        version_data = json.loads(api.dataset_status(dataset=KAGGLE_DATASET, format='json(current_version_number)'))
-        version_data = version_data['current_version_number']
-        pinned_dataset = f"{KAGGLE_DATASET}/{version_data}"
+    if dataset_version is None:
+        dataset_version = json.loads(api.dataset_status(dataset=KAGGLE_DATASET, format='json(current_version_number)'))
+        dataset_version = dataset_version['current_version_number']
+        pinned_dataset = f"{KAGGLE_DATASET}/{dataset_version}"
     else:
-        pinned_dataset = f"{KAGGLE_DATASET}/{version_data}"
+        pinned_dataset = f"{KAGGLE_DATASET}/{dataset_version}"
     api.dataset_download_files(dataset=pinned_dataset, path=data_dir, unzip=True)
     all_csv_metadata = api.dataset_list_files(pinned_dataset).to_dict()['datasetFiles']
 
-    download_results = DownloadResults(download_date=time,
+    download_results = DownloadResult(download_date=time,
                                        dataset_metadata=all_csv_metadata,
-                                       version_data=version_data)
+                                       dataset_version=dataset_version)
     return download_results
 
 def download_raw_data(input_raw_data_dir = None, replace_existing: bool = False, manifest_name: str='benchmark_raw_data_manifest.json') -> dict | None:
@@ -44,7 +44,7 @@ def download_raw_data(input_raw_data_dir = None, replace_existing: bool = False,
             print("Benchmark manifest found, downloading dataset accordingly.")
             with (manifests_data_dir / "benchmark_raw_data_manifest.json").open("r") as json_file:
                 benchmark = json.load(json_file)
-                download_results = download_kaggle_dataset(data_dir=input_raw_data_dir, version_data=benchmark['dataset_metadata']['dataset_version'])
+                download_results = download_kaggle_dataset(data_dir=input_raw_data_dir, dataset_version=benchmark['dataset_metadata']['dataset_version'])
         else:
             print("Benchmark is not available, downloading dataset and creating benchmark.")
             download_results = download_kaggle_dataset(data_dir=input_raw_data_dir)
@@ -57,7 +57,7 @@ def download_raw_data(input_raw_data_dir = None, replace_existing: bool = False,
                     benchmark = json.load(json_file)
                 tmp_raw_data_dir = input_raw_data_dir / "_tmp"
                 ensure_dir(tmp_raw_data_dir)
-                download_results = download_kaggle_dataset(data_dir=tmp_raw_data_dir, version_data=benchmark['dataset_metadata']['dataset_version'])
+                download_results = download_kaggle_dataset(data_dir=tmp_raw_data_dir, dataset_version=benchmark['dataset_metadata']['dataset_version'])
                 validate_raw_data(tmp_raw_data_dir)
                 for file in input_raw_data_dir.iterdir():
                     if file.is_file():
@@ -80,28 +80,28 @@ def download_raw_data(input_raw_data_dir = None, replace_existing: bool = False,
             return None
 
     manifest = create_manifest(dataset_metadata=download_results.dataset_metadata,
-                               version_number=download_results.version_data,
+                               dataset_version=download_results.dataset_version,
                                download_date=download_results.download_date,
                                input_raw_data_dir=input_raw_data_dir)
     save_manifest(manifest_name=manifest_name, manifest=manifest)
     return None
 
 
-def create_manifest(dataset_metadata: list[dict], version_number: float|int, download_date: str, input_raw_data_dir=None) -> dict:
+def create_manifest(dataset_metadata: list[dict], dataset_version: float|int, download_date: str, input_raw_data_dir=None) -> dict:
     if input_raw_data_dir is None:
         input_raw_data_dir = raw_data_dir
     manifest = dict()
     manifest['dataset_metadata'] = {'dataset_name': KAGGLE_DATASET,
-                                    'dataset_version': version_number}
+                                    'dataset_version': dataset_version}
     expected_files = asdict(ExpectedFiles())
     for file_id, file_name in expected_files.items():
         file_path = input_raw_data_dir / file_name
+        size_byte = None
+        creation_date = None
         if file_path.is_file():
             expected_columns = pd.read_csv(file_path, nrows=0).columns.tolist()
             column_count = len(expected_columns)
             row_count = pd.read_csv(file_path, usecols=[0]).shape[0]
-            creation_date = 'n/a'
-            size_byte = 0
             for metadata in dataset_metadata:
                 if metadata['name'] == file_name:
                     creation_date = metadata['creationDate']
@@ -113,9 +113,15 @@ def create_manifest(dataset_metadata: list[dict], version_number: float|int, dow
                             f"Expected size: {metadata['totalBytes']}\n byte."
                             f"Found size: {file_path.stat().st_size} byte")
 
+            if size_byte is None:
+                raise ValueError(f"Kaggle metadata is missing.\n"
+                                 f"The expected file size for {file_name} file was not available to extract.")
+            if creation_date is None:
+                raise ValueError(f"Kaggle metadata is missing.\n"
+                                 f"The creation date of the {file_name} file was not available to extract.")
             manifest[file_id] = {'file_name': file_name,
                                  'dataset': KAGGLE_DATASET,
-                                 'dataset_version': version_number,
+                                 'dataset_version': dataset_version,
                                  'file_path': str(file_path.relative_to(project_root).as_posix()),
                                  'sha256': calculate_local_sha256(file_path),
                                  'size_byte': size_byte,
@@ -124,6 +130,8 @@ def create_manifest(dataset_metadata: list[dict], version_number: float|int, dow
                                  'column_count': column_count,
                                  'row_count': row_count,
                                  'expected_columns': expected_columns}
+        else:
+            raise FileNotFoundError(f"File {file_name} not found.")
     return manifest
 
 
