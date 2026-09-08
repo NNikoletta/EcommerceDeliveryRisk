@@ -3,17 +3,12 @@ import pandas as pd
 from dataclasses import asdict
 from pathlib import Path
 
-from ecommercedeliveryrisk.config import raw_data_dir, manifests_data_dir, ExpectedFiles
+from ecommercedeliveryrisk.config import ExpectedFiles
 from ecommercedeliveryrisk.checksums import calculate_local_sha256
 
 
-def validate_raw_data(data_dir=None, manifest_dir=None) -> None:
-    if data_dir is None:
-        data_dir = raw_data_dir
-    if manifest_dir is None:
-        manifest_dir = manifests_data_dir
+def validate_raw_data(data_dir=None, manifests_dir=None) -> None:
     manifest = 'benchmark_raw_data_manifest.json'
-    tmp_manifest = 'tmp_raw_data_manifest.json'
 
     config = asdict(ExpectedFiles())
     expected_file_count = len(list([i for i in config.keys()]))
@@ -35,7 +30,7 @@ def validate_raw_data(data_dir=None, manifest_dir=None) -> None:
         if not file_path.is_file():
             raise FileNotFoundError(f"{file_name} is not a file.")
 
-    manifest_path = Path(manifest_dir / manifest)
+    manifest_path = Path(manifests_dir / manifest)
     with manifest_path.open("r") as json_file:
         manifest_data = json.load(json_file)
 
@@ -66,62 +61,30 @@ def validate_raw_data(data_dir=None, manifest_dir=None) -> None:
         if calculate_local_sha256(file_path) != manifest_data[key]['sha256']:
             raise ValueError("The SHA-256 hash doesn't match the expected value.")
 
-    tmp_manifest_path = manifest_dir / tmp_manifest
-    if tmp_manifest_path.is_file():
+    print("Datasets successfully validated.")
+
+def compare_manifests(manifests_dir=None):
+    benchmark_manifest = 'benchmark_raw_data_manifest.json'
+    tmp_manifest = 'tmp_raw_data_manifest.json'
+
+    benchmark_manifest_path = manifests_dir / benchmark_manifest
+    tmp_manifest_path = manifests_dir / tmp_manifest
+
+    if tmp_manifest_path.is_file() and benchmark_manifest_path.is_file():
+        with benchmark_manifest_path.open("r") as json_file:
+            benchmark_manifest_data = json.load(json_file)
         with tmp_manifest_path.open("r") as json_file:
             tmp_manifest_data = json.load(json_file)
 
-        if tmp_manifest_data.keys() != manifest_data.keys():
-            raise ValueError(f"The manifest data does not match the expected manifest data.\n")
+        if tmp_manifest_data.keys() != benchmark_manifest_data.keys():
+            raise ValueError("The manifest data does not match the benchmark data.\n")
 
-        if tmp_manifest_data['dataset_metadata'] != manifest_data['dataset_metadata']:
-            raise ValueError(f"The dataset metadata does not match the expected manifest data.\n")
-
-        for key, file_name in config.items():
-            if tmp_manifest_data[key]['file_name'] != manifest_data[key]['file_name']:
-                raise ValueError(f"The manifest data does not match the expected manifest data.\n"
-                                 f"Expected file name: {manifest_data[key]['file_name']}\n"
-                                 f"Found file name in tmp manifest: {tmp_manifest_data[key]['file_name']}\n")
-
-            if tmp_manifest_data[key]['dataset'] != manifest_data[key]['dataset']:
-                raise ValueError(f"The manifest data does not match the expected manifest data.\n"
-                                 f"Expected dataset name: {manifest_data[key]['dataset']}\n"
-                                 f"Found dataset name in tmp manifest: {tmp_manifest_data[key]['dataset']}\n")
-
-            if tmp_manifest_data[key]['dataset_version'] != manifest_data[key]['dataset_version']:
-                raise ValueError(f"The manifest data does not match the expected manifest data.\n"
-                                 f"Expected dataset version: {manifest_data[key]['dataset_version']}\n"
-                                 f"Found dataset version in tmp manifest: {tmp_manifest_data[key]['dataset_version']}\n")
-
-            if tmp_manifest_data[key]['sha256'] != manifest_data[key]['sha256']:
-                raise ValueError(f"The manifest data does not match the expected manifest data.\n"
-                                 f"Expected sha256: {manifest_data[key]['sha256']}\n"
-                                 f"Found sha256 in tmp manifest: {tmp_manifest_data[key]['sha256']}\n")
-
-            if tmp_manifest_data[key]['size_byte'] != manifest_data[key]['size_byte']:
-                raise ValueError(f"The manifest data does not match the expected manifest data.\n"
-                                 f"Expected size in bytes: {manifest_data[key]['size_byte']}\n"
-                                 f"Found size in bytes in tmp manifest: {tmp_manifest_data[key]['size_byte']}\n")
-
-            if tmp_manifest_data[key]['dataset_created'] != manifest_data[key]['dataset_created']:
-                raise ValueError(f"The manifest data does not match the expected manifest data.\n"
-                                 f"Expected date of creation: {manifest_data[key]['dataset_created']}\n"
-                                 f"Found date of creation in tmp manifest: {tmp_manifest_data[key]['dataset_created']}\n")
-
-            if tmp_manifest_data[key]['column_count'] != manifest_data[key]['column_count']:
-                raise ValueError(f"The manifest data does not match the expected manifest data.\n"
-                                 f"Expected column count: {manifest_data[key]['column_count']}\n"
-                                 f"Found column count in tmp manifest: {tmp_manifest_data[key]['column_count']}\n")
-
-            if tmp_manifest_data[key]['row_count'] != manifest_data[key]['row_count']:
-                raise ValueError(f"The manifest data does not match the expected manifest data.\n"
-                                 f"Expected row count: {manifest_data[key]['row_count']}\n"
-                                 f"Found row count in tmp manifest: {tmp_manifest_data[key]['row_count']}\n")
-
-            if tmp_manifest_data[key]['expected_columns'] != manifest_data[key]['expected_columns']:
-                raise ValueError(f"The manifest data does not match the expected manifest data.\n"
-                                 f"Expected column names: {manifest_data[key]['expected_columns']}\n"
-                                 f"Found column names in tmp manifest: {tmp_manifest_data[key]['expected_columns']}\n")
-
-    print("Datasets successfully validated.")
+        for (benchmark_file_id, benchmark_file_manifest), (tmp_file_id, tmp_file_manifest) in zip(benchmark_manifest_data.items(),
+                                                                                                  tmp_manifest_data.items()):
+            for (benchmark_key, benchmark_value), (tmp_key, tmp_value) in zip(benchmark_file_manifest.items(), tmp_file_manifest.items()):
+                if benchmark_key != 'download_data' and benchmark_key != 'download_date':
+                    if benchmark_value != tmp_value:
+                        raise ValueError(f"The manifest data does not match the benchmark data.\n"
+                                         f"Expected key-value pair: {benchmark_key}-{benchmark_value}\n"
+                                         f"Found key-value pair: {tmp_key}-{tmp_value}\n")
 

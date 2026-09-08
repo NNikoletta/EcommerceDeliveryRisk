@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from dataclasses import dataclass
-
+from typing import TypedDict
 
 @dataclass
 class DownloadResult:
@@ -21,6 +21,18 @@ class ExpectedFiles:
     sellers: str = "olist_sellers_dataset.csv"
     translation: str = "product_category_name_translation.csv"
 
+class FileManifest(TypedDict):
+    file_name: str
+    dataset: str
+    dataset_version: int
+    file_path: str
+    sha256: str
+    size_byte: int
+    download_date: str
+    dataset_created: str
+    column_count: int
+    row_count: int
+    column_names: list[str]
 
 project_root = Path(__file__).resolve().parents[2]
 

@@ -7,7 +7,7 @@ import tempfile
 import shutil
 
 from ecommercedeliveryrisk.config import project_root
-from ecommercedeliveryrisk.config import  (ExpectedFiles, DownloadResult, Settings)
+from ecommercedeliveryrisk.config import  ExpectedFiles, DownloadResult, Settings, FileManifest
 from ecommercedeliveryrisk.utils import ensure_dir
 from ecommercedeliveryrisk.checksums import calculate_local_sha256
 from ecommercedeliveryrisk.validate_data import validate_raw_data
@@ -83,7 +83,7 @@ def replace_raw_data(settings: Settings, benchmark_manifest_name: str):  # only 
                                                        data_dir=tmp_raw_data_dir,
                                                        dataset_version=benchmark['dataset_metadata']['dataset_version'])
 
-            validate_raw_data(data_dir=tmp_raw_data_dir, manifest_dir=settings.manifests_data_dir)
+            validate_raw_data(data_dir=tmp_raw_data_dir, manifests_dir=settings.manifests_data_dir)
 
             shutil.rmtree(settings.raw_data_dir)
             shutil.move(tmp_raw_data_dir, settings.raw_data_dir)
@@ -104,8 +104,8 @@ def create_manifest(dataset_metadata: list[dict], dataset_version: int, download
         size_byte = None
         creation_date = None
         if file_path.is_file():
-            expected_columns = pd.read_csv(file_path, nrows=0).columns.tolist()
-            column_count = len(expected_columns)
+            column_names = pd.read_csv(file_path, nrows=0).columns.tolist()
+            column_count = len(column_names)
             row_count = pd.read_csv(file_path, usecols=[0]).shape[0]
             for metadata in dataset_metadata:
                 if metadata['name'] == file_name:
@@ -124,17 +124,19 @@ def create_manifest(dataset_metadata: list[dict], dataset_version: int, download
             if creation_date is None:
                 raise ValueError(f"Kaggle metadata is missing.\n"
                                  f"The creation date of the {file_name} file was not available to extract.")
-            manifest[file_id] = {'file_name': file_name,
-                                 'dataset': settings.kaggle_dataset,
-                                 'dataset_version': dataset_version,
-                                 'file_path': str(file_path.relative_to(project_root).as_posix()),
-                                 'sha256': calculate_local_sha256(file_path),
-                                 'size_byte': size_byte,
-                                 'download_date': download_date,
-                                 'dataset_created': creation_date,
-                                 'column_count': column_count,
-                                 'row_count': row_count,
-                                 'expected_columns': expected_columns}
+
+            file_manifest: FileManifest = {'file_name': file_name,
+                                           'dataset': settings.kaggle_dataset,
+                                           'dataset_version': dataset_version,
+                                           'file_path': str(file_path.relative_to(project_root).as_posix()),
+                                           'sha256': calculate_local_sha256(file_path),
+                                           'size_byte': size_byte,
+                                           'download_date': download_date,
+                                           'dataset_created': creation_date,
+                                           'column_count': column_count,
+                                           'row_count': row_count,
+                                           'column_names': column_names}
+            manifest[file_id] = file_manifest
         else:
             raise FileNotFoundError(f"File {file_name} not found.")
     return manifest

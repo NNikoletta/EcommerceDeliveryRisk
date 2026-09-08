@@ -66,10 +66,10 @@ def test_download_raw_data(settings, pipeline_mocks,
         (destination / "new.csv").write_text("downloaded data", encoding='utf-8')
         return result
 
-    def mock_validate(data_dir=None, manifest_dir=None):
+    def mock_validate(data_dir=None, manifests_dir=None):
         assert old_file.read_text(encoding='utf-8') == "original data"
         assert (data_dir / "new.csv").is_file()
-        assert manifest_dir == settings.manifests_data_dir
+        assert manifests_dir == settings.manifests_data_dir
 
     download.side_effect = mock_download
     validate.side_effect = mock_validate
@@ -91,7 +91,7 @@ def test_download_raw_data(settings, pipeline_mocks,
         download.assert_called_once_with(settings=settings,
                                          data_dir=staging_dir,
                                          dataset_version=1)
-        validate.assert_called_once_with(staging_dir, manifest_dir=settings.manifests_data_dir)
+        validate.assert_called_once_with(staging_dir, manifests_dir=settings.manifests_data_dir)
         assert staging_dir.parent == settings.raw_data_dir.parent
         assert not staging_dir.exists()
     else:
