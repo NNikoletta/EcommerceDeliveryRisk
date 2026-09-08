@@ -39,9 +39,9 @@ def test_create_manifest(tmp_path, monkeypatch) -> None:
     monkeypatch.setattr(download_module, "calculate_local_sha256", mock_calculate_local_sha256)
 
     manifest = download_module.create_manifest(dataset_metadata=dataset_metadata,
-                                                version_number=1,
-                                                download_date=download_date,
-                                                input_raw_data_dir=test_raw_dir)
+                                               dataset_version=1,
+                                               download_date=download_date,
+                                               input_raw_data_dir=test_raw_dir)
 
     expected_manifest = {'dataset_metadata': {'dataset_name': download_module.KAGGLE_DATASET,
                                               'dataset_version': 1},
@@ -82,7 +82,7 @@ def test_create_manifest_raise_error_if_file_size_is_wrong(tmp_path, monkeypatch
     monkeypatch.setattr(download_module, "ExpectedFiles", MockExpectedFiles)
 
     with pytest.raises(ValueError, match="file size does not match"):
-        download_module.create_manifest(dataset_metadata=dataset_metadata, version_number=1,
+        download_module.create_manifest(dataset_metadata=dataset_metadata, dataset_version=1,
                                         download_date=download_date, input_raw_data_dir=test_raw_dir)
 
 
