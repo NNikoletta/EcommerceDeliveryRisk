@@ -79,12 +79,18 @@ def compare_manifests(manifests_dir=None):
         if tmp_manifest_data.keys() != benchmark_manifest_data.keys():
             raise ValueError("The manifest data does not match the benchmark data.\n")
 
-        for (benchmark_file_id, benchmark_file_manifest), (tmp_file_id, tmp_file_manifest) in zip(benchmark_manifest_data.items(),
-                                                                                                  tmp_manifest_data.items()):
-            for (benchmark_key, benchmark_value), (tmp_key, tmp_value) in zip(benchmark_file_manifest.items(), tmp_file_manifest.items()):
-                if benchmark_key != 'download_data' and benchmark_key != 'download_date':
-                    if benchmark_value != tmp_value:
+        for benchmark_file_id, benchmark_file_manifest in benchmark_manifest_data.items():
+            tmp_file_manifest = tmp_manifest_data[benchmark_file_id]
+
+            if benchmark_file_manifest.keys() != tmp_file_manifest.keys():
+                raise ValueError("The manifest data does not match the benchmark data.\n")
+
+            for benchmark_key, benchmark_value in benchmark_file_manifest.items():
+                if benchmark_key != 'download_data' and benchmark_key != 'file_path':
+                    if benchmark_value != tmp_file_manifest[benchmark_key]:
                         raise ValueError(f"The manifest data does not match the benchmark data.\n"
                                          f"Expected key-value pair: {benchmark_key}-{benchmark_value}\n"
-                                         f"Found key-value pair: {tmp_key}-{tmp_value}\n")
+                                         f"Found key-value pair: {benchmark_key}-{tmp_file_manifest[benchmark_key]}\n")
+    else:
+        raise FileNotFoundError("The required files were not found.")
 
