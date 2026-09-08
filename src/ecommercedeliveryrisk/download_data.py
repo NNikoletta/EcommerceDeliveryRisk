@@ -1,9 +1,10 @@
 import json
-import shutil
 import pandas as pd
 from datetime import datetime, timezone
 from kaggle.api.kaggle_api_extended import KaggleApi  # noinspection PyUnresolvedReferences
 from dataclasses import asdict
+from pathlib import Path
+import tempfile
 
 from ecommercedeliveryrisk.config import project_root
 from ecommercedeliveryrisk.config import  (raw_data_dir, KAGGLE_DATASET, ExpectedFiles,
@@ -31,9 +32,9 @@ def download_raw_data(input_raw_data_dir = None, manifests_dir = None, replace_e
             download_results = download_kaggle_dataset(data_dir=input_raw_data_dir)
     else:
         if replace_existing:
-            replace_raw_data(data_dir=input_raw_data_dir,
-                             manifests_dir=manifests_dir,
-                             benchmark_manifest_name=benchmark_manifest_name)
+            download_results = replace_raw_data(data_dir=input_raw_data_dir,
+                                                manifests_dir=manifests_dir,
+                                                benchmark_manifest_name=benchmark_manifest_name)
         else:
             return None
 
@@ -76,20 +77,19 @@ def replace_raw_data(data_dir, manifests_dir, benchmark_manifest_name):
     benchmark = load_manifest(manifests_dir=manifests_dir,
                               manifest_name=benchmark_manifest_name)
     if benchmark is not None:
-        tmp_raw_data_dir = data_dir / "tmp"
-        ensure_dir(tmp_raw_data_dir)
-        download_results = download_kaggle_dataset(data_dir=tmp_raw_data_dir,
-                                                   dataset_version=benchmark['dataset_metadata']['dataset_version'])
-        validate_raw_data(tmp_raw_data_dir)
-        for file in data_dir.iterdir():
-            if file.is_file():
-                file.unlink()
+        with tempfile.TemporaryDirectory() as tmp_path:
+            tmp_raw_data_dir = Path(tmp_path)
+            download_results = download_kaggle_dataset(data_dir=tmp_raw_data_dir,
+                                                       dataset_version=benchmark['dataset_metadata']['dataset_version'])
 
-        for file in tmp_raw_data_dir.iterdir():
-            move_to_path = data_dir / file.name
-            file.rename(move_to_path)
+            validate_raw_data(tmp_raw_data_dir)
+            for file in data_dir.iterdir():
+                if file.is_file():
+                    file.unlink()
 
-        shutil.rmtree(tmp_raw_data_dir)
+            for file in Path(tmp_raw_data_dir).iterdir():
+                move_to_path = data_dir / file.name
+                file.rename(move_to_path)
     else:
         for file in data_dir.iterdir():
             if file.is_file():
