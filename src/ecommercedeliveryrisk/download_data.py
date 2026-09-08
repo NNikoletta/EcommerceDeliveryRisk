@@ -1,39 +1,32 @@
 import json
 import pandas as pd
 from datetime import datetime, timezone
-from kaggle.api.kaggle_api_extended import KaggleApi  # noinspection PyUnresolvedReferences
 from dataclasses import asdict
 from pathlib import Path
 import tempfile
+import shutil
 
 from ecommercedeliveryrisk.config import project_root
-from ecommercedeliveryrisk.config import  (raw_data_dir, KAGGLE_DATASET, ExpectedFiles,
-                                           manifests_data_dir, DownloadResult)
+from ecommercedeliveryrisk.config import  (ExpectedFiles, DownloadResult, Settings)
 from ecommercedeliveryrisk.utils import ensure_dir
 from ecommercedeliveryrisk.checksums import calculate_local_sha256
 from ecommercedeliveryrisk.validate_data import validate_raw_data
 
 
-def download_raw_data(input_raw_data_dir = None, manifests_dir = None, replace_existing: bool = False, benchmark_manifest_name: str='benchmark_raw_data_manifest.json') -> dict | None:
-    if input_raw_data_dir is None:
-        input_raw_data_dir = raw_data_dir
+def download_raw_data(settings: Settings, replace_existing: bool = False, benchmark_manifest_name: str='benchmark_raw_data_manifest.json') -> dict | None:
+    ensure_dir(settings.raw_data_dir)
+    ensure_dir(settings.manifests_data_dir)
 
-    if manifests_dir is None:
-        manifests_dir = manifests_data_dir
-
-    ensure_dir(input_raw_data_dir)
-
-    if not any(input_raw_data_dir.iterdir()):
-        benchmark = load_manifest(manifests_dir=manifests_dir,
+    if not any(settings.raw_data_dir.iterdir()):
+        benchmark = load_manifest(manifests_dir=settings.manifests_data_dir,
                                   manifest_name=benchmark_manifest_name)
         if benchmark is not None:
-            download_results = download_kaggle_dataset(data_dir=input_raw_data_dir, dataset_version=benchmark['dataset_metadata']['dataset_version'])
+            download_results = download_kaggle_dataset(settings=settings, dataset_version=benchmark['dataset_metadata']['dataset_version'])
         else:
-            download_results = download_kaggle_dataset(data_dir=input_raw_data_dir)
+            download_results = download_kaggle_dataset(settings=settings)
     else:
         if replace_existing:
-            download_results = replace_raw_data(data_dir=input_raw_data_dir,
-                                                manifests_dir=manifests_dir,
+            download_results = replace_raw_data(settings=settings,
                                                 benchmark_manifest_name=benchmark_manifest_name)
         else:
             return None
@@ -41,21 +34,27 @@ def download_raw_data(input_raw_data_dir = None, manifests_dir = None, replace_e
     manifest = create_manifest(dataset_metadata=download_results.dataset_metadata,
                                dataset_version=download_results.dataset_version,
                                download_date=download_results.download_date,
-                               input_raw_data_dir=input_raw_data_dir)
+                               settings=settings)
     save_manifest(manifest_name=benchmark_manifest_name, manifest=manifest)
     return None
 
-def download_kaggle_dataset(data_dir, dataset_version=None) -> DownloadResult:
+
+def download_kaggle_dataset(settings: Settings, data_dir=None, dataset_version=None) -> DownloadResult:
+    from kaggle.api.kaggle_api_extended import KaggleApi
+
     api = KaggleApi()
     api.authenticate()
 
+    if data_dir is None:
+        data_dir = settings.raw_data_dir
+
     time = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     if dataset_version is None:
-        dataset_version = json.loads(api.dataset_status(dataset=KAGGLE_DATASET, format='json(current_version_number)'))
+        dataset_version = json.loads(api.dataset_status(dataset=settings.kaggle_dataset, format='json(current_version_number)'))
         dataset_version = dataset_version['current_version_number']
-        pinned_dataset = f"{KAGGLE_DATASET}/{dataset_version}"
+        pinned_dataset = f"{settings.kaggle_dataset}/{dataset_version}"
     else:
-        pinned_dataset = f"{KAGGLE_DATASET}/{dataset_version}"
+        pinned_dataset = f"{settings.kaggle_dataset}/{dataset_version}"
     api.dataset_download_files(dataset=pinned_dataset, path=data_dir, unzip=True)
     all_csv_metadata = api.dataset_list_files(pinned_dataset).to_dict()['datasetFiles']
 
@@ -67,45 +66,41 @@ def download_kaggle_dataset(data_dir, dataset_version=None) -> DownloadResult:
 
 def load_manifest(manifests_dir, manifest_name) -> dict | None:
     if (manifests_dir / manifest_name).is_file():
-        with (manifests_data_dir / manifest_name).open("r") as json_file:
+        with (manifests_dir / manifest_name).open("r") as json_file:
             manifest = json.load(json_file)
         return manifest
     else:
         return None
 
-def replace_raw_data(data_dir, manifests_dir, benchmark_manifest_name):
-    benchmark = load_manifest(manifests_dir=manifests_dir,
+
+def replace_raw_data(settings: Settings, benchmark_manifest_name: str):  # only replaces main Settings data
+    benchmark = load_manifest(manifests_dir=settings.manifests_data_dir,
                               manifest_name=benchmark_manifest_name)
     if benchmark is not None:
-        with tempfile.TemporaryDirectory() as tmp_path:
+        with tempfile.TemporaryDirectory(dir=settings.raw_data_dir.parent) as tmp_path:
             tmp_raw_data_dir = Path(tmp_path)
-            download_results = download_kaggle_dataset(data_dir=tmp_raw_data_dir,
+            download_results = download_kaggle_dataset(settings=settings,
+                                                       data_dir=tmp_raw_data_dir,
                                                        dataset_version=benchmark['dataset_metadata']['dataset_version'])
 
             validate_raw_data(tmp_raw_data_dir)
-            for file in data_dir.iterdir():
-                if file.is_file():
-                    file.unlink()
 
-            for file in Path(tmp_raw_data_dir).iterdir():
-                move_to_path = data_dir / file.name
-                file.rename(move_to_path)
+            shutil.rmtree(settings.raw_data_dir)
+            shutil.move(tmp_raw_data_dir, settings.raw_data_dir)
     else:
-        for file in data_dir.iterdir():
-            if file.is_file():
-                file.unlink()
-        download_results = download_kaggle_dataset(data_dir=data_dir)
+        shutil.rmtree(settings.raw_data_dir)
+        ensure_dir(settings.raw_data_dir)
+        download_results = download_kaggle_dataset(settings=settings)
     return download_results
 
-def create_manifest(dataset_metadata: list[dict], dataset_version: int, download_date: str, input_raw_data_dir=None) -> dict:
-    if input_raw_data_dir is None:
-        input_raw_data_dir = raw_data_dir
+
+def create_manifest(dataset_metadata: list[dict], dataset_version: int, download_date: str, settings: Settings) -> dict:
     manifest = dict()
-    manifest['dataset_metadata'] = {'dataset_name': KAGGLE_DATASET,
+    manifest['dataset_metadata'] = {'dataset_name': settings.kaggle_dataset,
                                     'dataset_version': dataset_version}
     expected_files = asdict(ExpectedFiles())
     for file_id, file_name in expected_files.items():
-        file_path = input_raw_data_dir / file_name
+        file_path = settings.raw_data_dir / file_name
         size_byte = None
         creation_date = None
         if file_path.is_file():
@@ -130,7 +125,7 @@ def create_manifest(dataset_metadata: list[dict], dataset_version: int, download
                 raise ValueError(f"Kaggle metadata is missing.\n"
                                  f"The creation date of the {file_name} file was not available to extract.")
             manifest[file_id] = {'file_name': file_name,
-                                 'dataset': KAGGLE_DATASET,
+                                 'dataset': settings.kaggle_dataset,
                                  'dataset_version': dataset_version,
                                  'file_path': str(file_path.relative_to(project_root).as_posix()),
                                  'sha256': calculate_local_sha256(file_path),
@@ -144,9 +139,8 @@ def create_manifest(dataset_metadata: list[dict], dataset_version: int, download
             raise FileNotFoundError(f"File {file_name} not found.")
     return manifest
 
+
 def save_manifest(manifest_name: str, manifest: dict, input_manifest_data_dir=None) -> None:
-    if input_manifest_data_dir is None:
-        input_manifest_data_dir = manifests_data_dir
     ensure_dir(input_manifest_data_dir)
     file_path = input_manifest_data_dir / manifest_name
 
