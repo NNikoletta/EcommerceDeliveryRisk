@@ -35,7 +35,7 @@ def download_raw_data(settings: Settings, replace_existing: bool = False, benchm
                                dataset_version=download_results.dataset_version,
                                download_date=download_results.download_date,
                                settings=settings)
-    save_manifest(manifest_name=benchmark_manifest_name, manifest=manifest)
+    save_manifest(manifest_name=benchmark_manifest_name, manifest=manifest, input_manifest_data_dir=settings.manifests_data_dir)
     return None
 
 
@@ -83,7 +83,7 @@ def replace_raw_data(settings: Settings, benchmark_manifest_name: str):  # only 
                                                        data_dir=tmp_raw_data_dir,
                                                        dataset_version=benchmark['dataset_metadata']['dataset_version'])
 
-            validate_raw_data(tmp_raw_data_dir)
+            validate_raw_data(data_dir=tmp_raw_data_dir, manifest_dir=settings.manifests_data_dir)
 
             shutil.rmtree(settings.raw_data_dir)
             shutil.move(tmp_raw_data_dir, settings.raw_data_dir)

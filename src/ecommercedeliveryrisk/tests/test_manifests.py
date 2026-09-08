@@ -5,6 +5,7 @@ from unittest.mock import Mock
 import pytest
 
 import ecommercedeliveryrisk.download_data as download_module
+from ecommercedeliveryrisk.config import Settings
 
 
 @dataclass
@@ -19,7 +20,7 @@ def test_create_manifest(tmp_path, monkeypatch) -> None:
     test_file = test_raw_dir / "orders.csv"
     test_file.write_text("order_id,status\n"
                          "1,delivered\n"
-                         "2,shipped\n", encoding="utf-8")
+                         "2,shipped\n", encoding='utf-8')
 
     download_date = "2026-09-07T12:00:00.000000Z"
 
@@ -41,12 +42,14 @@ def test_create_manifest(tmp_path, monkeypatch) -> None:
     manifest = download_module.create_manifest(dataset_metadata=dataset_metadata,
                                                dataset_version=1,
                                                download_date=download_date,
-                                               input_raw_data_dir=test_raw_dir)
+                                               settings=Settings(kaggle_dataset="test-owner/test-dataset",
+                                                                 raw_data_dir=test_raw_dir,
+                                                                 manifests_data_dir=tmp_path/"manifests"))
 
-    expected_manifest = {'dataset_metadata': {'dataset_name': download_module.KAGGLE_DATASET,
+    expected_manifest = {'dataset_metadata': {'dataset_name': 'test-owner/test-dataset',
                                               'dataset_version': 1},
                          'orders' : {'file_name': 'orders.csv',
-                                     'dataset': download_module.KAGGLE_DATASET,
+                                     'dataset': 'test-owner/test-dataset',
                                      'dataset_version': 1,
                                      'file_path': 'raw/orders.csv',
                                      'sha256': 'mock_sha256',
@@ -83,7 +86,9 @@ def test_create_manifest_raise_error_if_file_size_is_wrong(tmp_path, monkeypatch
 
     with pytest.raises(ValueError, match="file size does not match"):
         download_module.create_manifest(dataset_metadata=dataset_metadata, dataset_version=1,
-                                        download_date=download_date, input_raw_data_dir=test_raw_dir)
+                                        download_date=download_date, settings=Settings(kaggle_dataset="test-owner/test-dataset",
+                                                                                       raw_data_dir=test_raw_dir,
+                                                                                       manifests_data_dir=tmp_path/"manifests"))
 
 
 def test_save_manifest_creates_directory_and_file(tmp_path) -> None:
