@@ -1,4 +1,5 @@
 import json
+import logging
 import pandas as pd
 from dataclasses import asdict
 from pathlib import Path
@@ -6,6 +7,8 @@ from pathlib import Path
 from ecommercedeliveryrisk.config import ExpectedFiles
 from ecommercedeliveryrisk.checksums import calculate_local_sha256
 
+
+logger = logging.getLogger(__name__)
 
 def validate_data(data_dir, manifests_dir, benchmark_manifest_name='benchmark_raw_data_manifest.json') -> None:
     validate_files_and_path(data_dir, manifests_dir, benchmark_manifest_name)
@@ -42,7 +45,7 @@ def validate_files_and_path(data_dir, manifests_dir, benchmark_manifest_name='be
     if not (manifests_dir/benchmark_manifest_name).is_file():
         raise FileNotFoundError(f"Expected benchmark file '{benchmark_manifest_name}' was not found.")
 
-    print("Directories validated successfully.")
+    logger.info("Directories validated successfully.")
 
 
 def validate_raw_data(data_dir, manifests_dir, benchmark_manifest_name='benchmark_raw_data_manifest.json') -> None:
@@ -79,7 +82,7 @@ def validate_raw_data(data_dir, manifests_dir, benchmark_manifest_name='benchmar
         if calculate_local_sha256(file_path) != benchmark_manifest_data[key]['sha256']:
             raise ValueError("The SHA-256 hash doesn't match the expected value.")
 
-    print("Raw data successfully validated.")
+    logger.info("Raw data successfully validated.")
 
 
 def compare_manifests(manifests_dir, benchmark_manifest = 'benchmark_raw_data_manifest.json'):
@@ -109,8 +112,8 @@ def compare_manifests(manifests_dir, benchmark_manifest = 'benchmark_raw_data_ma
                         raise ValueError(f"The manifest data does not match the benchmark data.\n"
                                          f"Expected key-value pair: {benchmark_key}-{benchmark_value}\n"
                                          f"Found key-value pair: {benchmark_key}-{tmp_file_manifest[benchmark_key]}\n")
-        print("Comparison validation completed successfully.")
+        logger.info("Comparison validation completed successfully.")
     else:
-        print("Comparison validation could not be made.\n"
-              "Required files were not found.")
+        logger.info("Comparison validation could not be made.\n"
+                    "Required files were not found.")
 

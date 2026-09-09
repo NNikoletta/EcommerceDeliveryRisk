@@ -22,3 +22,4 @@ Thumbs.db
 kaggle.json
 data/raw/
 data/manifests/tmp_raw_data_manifest.json
+logs/

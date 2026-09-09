@@ -1,10 +1,11 @@
 import json
+import tempfile
+import shutil
+import logging
 import pandas as pd
 from datetime import datetime, timezone
 from dataclasses import asdict
 from pathlib import Path
-import tempfile
-import shutil
 
 from ecommercedeliveryrisk.config import project_root
 from ecommercedeliveryrisk.config import  ExpectedFiles, DownloadResult, Settings, FileManifest
@@ -12,6 +13,8 @@ from ecommercedeliveryrisk.utils import ensure_dir
 from ecommercedeliveryrisk.checksums import calculate_local_sha256
 from ecommercedeliveryrisk.validate_data import validate_data
 
+
+logger = logging.getLogger(__name__)
 
 def download_raw_data(settings: Settings, replace_existing: bool = False, benchmark_manifest_name: str='benchmark_raw_data_manifest.json') -> dict | None:
     ensure_dir(settings.raw_data_dir)
@@ -61,6 +64,7 @@ def download_kaggle_dataset(settings: Settings, data_dir=None, dataset_version=N
     download_results = DownloadResult(download_date=time,
                                       dataset_metadata=all_csv_metadata,
                                       dataset_version=dataset_version)
+
     return download_results
 
 
@@ -68,8 +72,10 @@ def load_manifest(manifests_dir, manifest_name) -> dict | None:
     if (manifests_dir / manifest_name).is_file():
         with (manifests_dir / manifest_name).open("r") as json_file:
             manifest = json.load(json_file)
+        logger.info(f"{manifest_name} was loaded successfully.")
         return manifest
     else:
+        logger.info(f"{manifest_name} was not found.")
         return None
 
 
@@ -93,6 +99,8 @@ def replace_raw_data(settings: Settings, benchmark_manifest_name: str):  # only 
         shutil.rmtree(settings.raw_data_dir)
         ensure_dir(settings.raw_data_dir)
         download_results = download_kaggle_dataset(settings=settings)
+
+    logger.info("Dataset was replaced successfully.")
     return download_results
 
 
@@ -142,6 +150,7 @@ def create_manifest(dataset_metadata: list[dict], dataset_version: int, download
         else:
             raise FileNotFoundError(f"File {file_name} not found.")
 
+    logger.info("Manifest created successfully.")
     return manifest
 
 
@@ -150,18 +159,18 @@ def save_manifest(manifest_name: str, manifest: dict, input_manifest_data_dir) -
     file_path = input_manifest_data_dir / manifest_name
 
     if file_path.is_file():
-        print(f"Manifest under the name: '{manifest_name}' already exists; new manifest will be saved as 'tmp_raw_data_manifest.json'.")
+        logger.info(f"Manifest under the name: '{manifest_name}' already exists; new manifest will be saved as 'tmp_raw_data_manifest.json'.")
         manifest_name = "tmp_raw_data_manifest.json"
         file_path = input_manifest_data_dir / manifest_name
         if file_path.is_file():
-            print(f"Temporary manifest already exists and will be overwritten with the newly created manifest.")
+            logger.info(f"Temporary manifest already exists and will be overwritten with the newly created manifest.")
             file_path.unlink()
         with file_path.open("w", encoding="utf-8") as json_file:
             json.dump(manifest, json_file, indent=2)
-        print("Manifest has been saved successfully.")
+        logger.info("Manifest has been saved successfully.")
     else:
         with file_path.open("w", encoding="utf-8") as json_file:
             json.dump(manifest, json_file, indent=2)
-        print("Manifest has been saved successfully.")
+        logger.info("Manifest has been saved successfully.")
     return None
 
