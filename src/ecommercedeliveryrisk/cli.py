@@ -7,10 +7,6 @@ from ecommercedeliveryrisk.config import load_settings, project_root
 from ecommercedeliveryrisk.download_data import download_raw_data
 from ecommercedeliveryrisk.validate_data import validate_data, compare_manifests
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s | %(levelname)s | %(name)s | %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S')
-
 logger = logging.getLogger(__name__)
 
 def build_parser() -> argparse.ArgumentParser:
@@ -30,6 +26,10 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 def main(argv: Sequence[str] | None = None) -> None:
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s | %(levelname)s | %(name)s | %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
+
     args = build_parser().parse_args(argv)
 
     try:
