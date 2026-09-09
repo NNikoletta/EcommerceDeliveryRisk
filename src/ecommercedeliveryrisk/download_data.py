@@ -6,6 +6,7 @@ import pandas as pd
 from datetime import datetime, timezone
 from dataclasses import asdict
 from pathlib import Path
+from enum import StrEnum
 
 from ecommercedeliveryrisk.config import project_root
 from ecommercedeliveryrisk.config import  ExpectedFiles, DownloadResult, Settings, FileManifest
@@ -16,7 +17,12 @@ from ecommercedeliveryrisk.validate_data import validate_data
 
 logger = logging.getLogger(__name__)
 
-def download_raw_data(settings: Settings, replace_existing: bool = False, benchmark_manifest_name: str='benchmark_raw_data_manifest.json') -> dict | None:
+class DownloadOutcome(StrEnum):
+    DOWNLOADED = "downloaded"
+    REPLACED = "replaced"
+    RETAINED = "retained"
+
+def download_raw_data(settings: Settings, replace_existing: bool = False, benchmark_manifest_name: str='benchmark_raw_data_manifest.json') -> DownloadOutcome:
     ensure_dir(settings.raw_data_dir)
     ensure_dir(settings.manifests_data_dir)
 
@@ -27,19 +33,24 @@ def download_raw_data(settings: Settings, replace_existing: bool = False, benchm
             download_results = download_kaggle_dataset(settings=settings, dataset_version=benchmark['dataset_metadata']['dataset_version'])
         else:
             download_results = download_kaggle_dataset(settings=settings)
+
+        outcome = DownloadOutcome.DOWNLOADED
+    elif replace_existing:
+        download_results = replace_raw_data(settings=settings,
+                                            benchmark_manifest_name=benchmark_manifest_name)
+        outcome = DownloadOutcome.REPLACED
     else:
-        if replace_existing:
-            download_results = replace_raw_data(settings=settings,
-                                                benchmark_manifest_name=benchmark_manifest_name)
-        else:
-            return None
+        logger.info("Original raw data was retained.")
+        return DownloadOutcome.RETAINED
 
     manifest = create_manifest(dataset_metadata=download_results.dataset_metadata,
                                dataset_version=download_results.dataset_version,
                                download_date=download_results.download_date,
                                settings=settings)
     save_manifest(manifest_name=benchmark_manifest_name, manifest=manifest, input_manifest_data_dir=settings.manifests_data_dir)
-    return None
+
+    logger.info("Raw-data operation completed: %s.", outcome.value)
+    return outcome
 
 
 def download_kaggle_dataset(settings: Settings, data_dir=None, dataset_version=None) -> DownloadResult:

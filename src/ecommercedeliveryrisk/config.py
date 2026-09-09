@@ -2,13 +2,8 @@ import os
 from pathlib import Path
 from dataclasses import dataclass
 from typing import TypedDict
+from enum import StrEnum
 
-
-@dataclass
-class DownloadResult:
-    download_date: str
-    dataset_metadata: list[dict]
-    dataset_version: int
 
 @dataclass(frozen=True)
 class ExpectedFiles:
@@ -21,6 +16,12 @@ class ExpectedFiles:
     products: str = "olist_products_dataset.csv"
     sellers: str = "olist_sellers_dataset.csv"
     translation: str = "product_category_name_translation.csv"
+
+@dataclass
+class DownloadResult:
+    download_date: str
+    dataset_metadata: list[dict]
+    dataset_version: int
 
 class FileManifest(TypedDict):
     file_name: str

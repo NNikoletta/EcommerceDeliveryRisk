@@ -4,6 +4,7 @@ from unittest.mock import create_autospec
 import pytest
 
 import ecommercedeliveryrisk.download_data as download_module
+from ecommercedeliveryrisk.download_data import DownloadOutcome
 from ecommercedeliveryrisk.config import DownloadResult, Settings
 
 @pytest.fixture
@@ -24,19 +25,19 @@ def pipeline_mocks(monkeypatch):
     return download, create, validate
 
 @pytest.mark.parametrize(
-    "contains_old_data,benchmark_available,replace_existing",
+    "contains_old_data,benchmark_available,replace_existing,expected_outcome",
     [
-        pytest.param(False, False, False, id="empty-no-benchmark"),
-        pytest.param(False, True, False, id="empty-with-benchmark"),
-        pytest.param(True, False, True, id="replace-no-benchmark"),
-        pytest.param(True, True, True, id="replace-with-benchmark"),
-        pytest.param(True, True, False, id="retain-existing")
+        pytest.param(False, False, False, DownloadOutcome.DOWNLOADED, id="empty-no-benchmark"),
+        pytest.param(False, True, False, DownloadOutcome.DOWNLOADED, id="empty-with-benchmark"),
+        pytest.param(True, False, True, DownloadOutcome.REPLACED, id="replace-no-benchmark"),
+        pytest.param(True, True, True, DownloadOutcome.REPLACED, id="replace-with-benchmark"),
+        pytest.param(True, True, False, DownloadOutcome.RETAINED, id="retain-existing")
     ]
 )
 
 def test_download_raw_data(settings, pipeline_mocks,
                            contains_old_data, benchmark_available,
-                           replace_existing):
+                           replace_existing, expected_outcome):
     download, create, validate = pipeline_mocks
     old_file = settings.raw_data_dir / "old.csv"
     if contains_old_data:
@@ -74,7 +75,9 @@ def test_download_raw_data(settings, pipeline_mocks,
     download.side_effect = mock_download
     validate.side_effect = mock_validate
 
-    download_module.download_raw_data(settings=settings, replace_existing=replace_existing)
+    outcome = download_module.download_raw_data(settings=settings, replace_existing=replace_existing)
+
+    assert outcome is expected_outcome
 
     if contains_old_data and not replace_existing:
         download.assert_not_called()
