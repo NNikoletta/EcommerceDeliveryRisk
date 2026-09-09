@@ -16,11 +16,11 @@ def settings(tmp_path):
 def pipeline_mocks(monkeypatch):
     download = create_autospec(download_module.download_kaggle_dataset)
     create = create_autospec(download_module.create_manifest)
-    validate = create_autospec(download_module.validate_raw_data)
+    validate = create_autospec(download_module.validate_data)
     monkeypatch.setattr(download_module, "download_kaggle_dataset", download)
     monkeypatch.setattr(download_module, "create_manifest", create)
     # noinspection unresolved-references
-    monkeypatch.setattr(download_module, "validate_raw_data", validate)
+    monkeypatch.setattr(download_module, "validate_data", validate)
     return download, create, validate
 
 @pytest.mark.parametrize(
@@ -66,7 +66,7 @@ def test_download_raw_data(settings, pipeline_mocks,
         (destination / "new.csv").write_text("downloaded data", encoding='utf-8')
         return result
 
-    def mock_validate(data_dir=None, manifests_dir=None):
+    def mock_validate(data_dir=None, manifests_dir=None, benchmark_manifest_name="benchmark_raw_data_manifest.json"):
         assert old_file.read_text(encoding='utf-8') == "original data"
         assert (data_dir / "new.csv").is_file()
         assert manifests_dir == settings.manifests_data_dir
@@ -91,7 +91,9 @@ def test_download_raw_data(settings, pipeline_mocks,
         download.assert_called_once_with(settings=settings,
                                          data_dir=staging_dir,
                                          dataset_version=1)
-        validate.assert_called_once_with(staging_dir, manifests_dir=settings.manifests_data_dir)
+        validate.assert_called_once_with(staging_dir,
+                                         manifests_dir=settings.manifests_data_dir,
+                                         benchmark_manifest_name="benchmark_raw_data_manifest.json")
         assert staging_dir.parent == settings.raw_data_dir.parent
         assert not staging_dir.exists()
     else:

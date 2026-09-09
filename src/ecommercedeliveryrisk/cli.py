@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 
 from ecommercedeliveryrisk.config import load_settings, project_root
-from ecommercedeliveryrisk.validate_data import compare_manifests
 
 
 def main() -> None:
@@ -9,9 +8,9 @@ def main() -> None:
     settings = load_settings()
 
     from ecommercedeliveryrisk.download_data import download_raw_data
-    from ecommercedeliveryrisk.validate_data import validate_raw_data
+    from ecommercedeliveryrisk.validate_data import validate_data, compare_manifests
 
     download_raw_data(settings=settings)
-    validate_raw_data(data_dir=settings.raw_data_dir,
-                      manifests_dir=settings.manifests_data_dir)
+    validate_data(data_dir=settings.raw_data_dir,
+                  manifests_dir=settings.manifests_data_dir)
     compare_manifests(manifests_dir=settings.manifests_data_dir)

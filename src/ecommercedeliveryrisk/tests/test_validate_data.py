@@ -52,10 +52,10 @@ def valid_case(tmp_path, monkeypatch):
     return settings, benchmark, benchmark_path
 
 
-def test_validate_raw_data_with_valid_data(valid_case):
+def test_validate_data_with_valid_data(valid_case):
     settings, _, _ = valid_case
 
-    validation_module.validate_raw_data(settings.raw_data_dir, settings.manifests_data_dir)
+    validation_module.validate_data(settings.raw_data_dir, settings.manifests_data_dir)
 
 
 def test_compare_manifests_with_valid_data(valid_case):
@@ -77,7 +77,7 @@ def test_compare_manifests_with_valid_data(valid_case):
         ("sha256", "wrong_sha256", ValueError, "SHA-256")
     ]
 )
-def test_validate_raw_data_with_wrong_file_metric(valid_case, key,
+def test_validate_data_with_wrong_file_metric(valid_case, key,
                                                   wrong_value, error,
                                                   message):
     settings, benchmark, benchmark_path = valid_case
@@ -86,7 +86,7 @@ def test_validate_raw_data_with_wrong_file_metric(valid_case, key,
     benchmark_path.write_text(json.dumps(benchmark), encoding='utf-8')
 
     with pytest.raises(error, match=message):
-        validation_module.validate_raw_data(data_dir=settings.raw_data_dir,
+        validation_module.validate_data(data_dir=settings.raw_data_dir,
                                             manifests_dir=settings.manifests_data_dir)
 
 
@@ -130,7 +130,7 @@ def test_compare_manifests_with_wrong_file_metric(valid_case,
         pytest.param(True, False, id="yes-dir-no-files")
     ]
 )
-def test_validate_raw_data(valid_case, directory_available, files_available):
+def test_validate_data(valid_case, directory_available, files_available):
     settings, _, _ = valid_case
     data_dir = settings.raw_data_dir
     if not directory_available:
@@ -138,13 +138,13 @@ def test_validate_raw_data(valid_case, directory_available, files_available):
             file.unlink()
         settings.raw_data_dir.rmdir()
         with pytest.raises(FileNotFoundError, match=f"The file directory '.*' does not exist."):
-            validation_module.validate_raw_data(data_dir=data_dir,
-                                                manifests_dir=settings.manifests_data_dir)
+            validation_module.validate_data(data_dir=data_dir,
+                                            manifests_dir=settings.manifests_data_dir)
 
     if directory_available and not files_available:
         for file in settings.raw_data_dir.iterdir():
             file.unlink()
         with pytest.raises(FileNotFoundError, match=f"The file directory '.*' does not contain any files."):
-            validation_module.validate_raw_data(data_dir=settings.raw_data_dir,
-                                                manifests_dir=settings.manifests_data_dir)
+            validation_module.validate_data(data_dir=settings.raw_data_dir,
+                                            manifests_dir=settings.manifests_data_dir)
 

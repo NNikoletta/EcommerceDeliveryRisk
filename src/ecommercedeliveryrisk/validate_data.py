@@ -7,9 +7,12 @@ from ecommercedeliveryrisk.config import ExpectedFiles
 from ecommercedeliveryrisk.checksums import calculate_local_sha256
 
 
-def validate_raw_data(data_dir, manifests_dir) -> None:
-    manifest = 'benchmark_raw_data_manifest.json'
+def validate_data(data_dir, manifests_dir, benchmark_manifest_name='benchmark_raw_data_manifest.json') -> None:
+    validate_files_and_path(data_dir, manifests_dir, benchmark_manifest_name)
+    validate_raw_data(data_dir, manifests_dir, benchmark_manifest_name)
 
+
+def validate_files_and_path(data_dir, manifests_dir, benchmark_manifest_name='benchmark_raw_data_manifest.json'):
     config = asdict(ExpectedFiles())
     expected_file_count = len(list([i for i in config.keys()]))
 
@@ -30,41 +33,56 @@ def validate_raw_data(data_dir, manifests_dir) -> None:
         if not file_path.is_file():
             raise FileNotFoundError(f"{file_name} is not a file.")
 
-    manifest_path = Path(manifests_dir / manifest)
-    with manifest_path.open("r") as json_file:
-        manifest_data = json.load(json_file)
+    if not manifests_dir.exists():
+        raise FileNotFoundError(f"The manifests directory '{manifests_dir}' does not exist.")
+
+    if not any(manifests_dir.iterdir()):
+        raise FileNotFoundError(f"The manifests directory '{manifests_dir}' does not contain any files.")
+
+    if not (manifests_dir/benchmark_manifest_name).is_file():
+        raise FileNotFoundError(f"Expected benchmark file '{benchmark_manifest_name}' was not found.")
+
+    print("Directories validated successfully.")
+
+
+def validate_raw_data(data_dir, manifests_dir, benchmark_manifest_name='benchmark_raw_data_manifest.json') -> None:
+    config = asdict(ExpectedFiles())
+
+    benchmark_manifest_path = Path(manifests_dir / benchmark_manifest_name)
+    with benchmark_manifest_path.open("r") as json_file:
+        benchmark_manifest_data = json.load(json_file)
 
     for key, file_name in config.items():
         file_path = data_dir / file_name
-        if file_path.name != manifest_data[key]['file_name']:
+        if file_path.name != benchmark_manifest_data[key]['file_name']:
             raise FileNotFoundError(f"File name does not match the expected file name.\n"
-                                    f"Expected {manifest_data[key]['file_name']}\n"
+                                    f"Expected {benchmark_manifest_data[key]['file_name']}\n"
                                     f"Found {file_name}.")
 
-        if file_path.stat().st_size != manifest_data[key]['size_byte']:
+        if file_path.stat().st_size != benchmark_manifest_data[key]['size_byte']:
             raise ValueError(f"The size of the '{file_name}' file does not match the expected size.\n"
-                             f"Expected size is {manifest_data[key]['size_byte']} bytes.\n"
+                             f"Expected size is {benchmark_manifest_data[key]['size_byte']} bytes.\n"
                              f"Found size {file_path.stat().st_size} bytes.")
 
         found_row_count = pd.read_csv(file_path, usecols=[0]).shape[0]
-        if found_row_count != manifest_data[key]['row_count']:
+        if found_row_count != benchmark_manifest_data[key]['row_count']:
             raise ValueError(f"The number of rows of the '{file_name}' file does not match the expected number of rows.\n"
-                             f"Expected {manifest_data[key]['row_count']} rows.\n"
+                             f"Expected {benchmark_manifest_data[key]['row_count']} rows.\n"
                              f"Found {found_row_count} rows.\n")
 
         found_column_count = len(pd.read_csv(file_path, nrows=0).columns.tolist())
-        if found_column_count != manifest_data[key]['column_count']:
+        if found_column_count != benchmark_manifest_data[key]['column_count']:
             raise ValueError(f"The number of columns of the '{file_name}' file does not match the expected number of columns.\n"
-                             f"Expected {manifest_data[key]['column_count']} columns.\n"
+                             f"Expected {benchmark_manifest_data[key]['column_count']} columns.\n"
                              f"Found {found_column_count} columns.\n")
 
-        if calculate_local_sha256(file_path) != manifest_data[key]['sha256']:
+        if calculate_local_sha256(file_path) != benchmark_manifest_data[key]['sha256']:
             raise ValueError("The SHA-256 hash doesn't match the expected value.")
 
-    print("Datasets successfully validated.")
+    print("Raw data successfully validated.")
 
-def compare_manifests(manifests_dir):
-    benchmark_manifest = 'benchmark_raw_data_manifest.json'
+
+def compare_manifests(manifests_dir, benchmark_manifest = 'benchmark_raw_data_manifest.json'):
     tmp_manifest = 'tmp_raw_data_manifest.json'
 
     benchmark_manifest_path = manifests_dir / benchmark_manifest
@@ -91,7 +109,8 @@ def compare_manifests(manifests_dir):
                         raise ValueError(f"The manifest data does not match the benchmark data.\n"
                                          f"Expected key-value pair: {benchmark_key}-{benchmark_value}\n"
                                          f"Found key-value pair: {benchmark_key}-{tmp_file_manifest[benchmark_key]}\n")
+        print("Comparison validation completed successfully.")
     else:
-        print("The required files were not found.\n"
-              "Comparison cannot be made.")
+        print("Comparison validation could not be made.\n"
+              "Required files were not found.")
 

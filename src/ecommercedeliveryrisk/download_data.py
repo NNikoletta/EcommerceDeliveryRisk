@@ -10,7 +10,7 @@ from ecommercedeliveryrisk.config import project_root
 from ecommercedeliveryrisk.config import  ExpectedFiles, DownloadResult, Settings, FileManifest
 from ecommercedeliveryrisk.utils import ensure_dir
 from ecommercedeliveryrisk.checksums import calculate_local_sha256
-from ecommercedeliveryrisk.validate_data import validate_raw_data
+from ecommercedeliveryrisk.validate_data import validate_data
 
 
 def download_raw_data(settings: Settings, replace_existing: bool = False, benchmark_manifest_name: str='benchmark_raw_data_manifest.json') -> dict | None:
@@ -83,7 +83,9 @@ def replace_raw_data(settings: Settings, benchmark_manifest_name: str):  # only 
                                                        data_dir=tmp_raw_data_dir,
                                                        dataset_version=benchmark['dataset_metadata']['dataset_version'])
 
-            validate_raw_data(data_dir=tmp_raw_data_dir, manifests_dir=settings.manifests_data_dir)
+            validate_data(data_dir=tmp_raw_data_dir,
+                          manifests_dir=settings.manifests_data_dir,
+                          benchmark_manifest_name=benchmark_manifest_name)
 
             shutil.rmtree(settings.raw_data_dir)
             shutil.move(tmp_raw_data_dir, settings.raw_data_dir)
@@ -95,10 +97,10 @@ def replace_raw_data(settings: Settings, benchmark_manifest_name: str):  # only 
 
 
 def create_manifest(dataset_metadata: list[dict], dataset_version: int, download_date: str, settings: Settings) -> dict:
+    expected_files = asdict(ExpectedFiles())
     manifest = dict()
     manifest['dataset_metadata'] = {'dataset_name': settings.kaggle_dataset,
                                     'dataset_version': dataset_version}
-    expected_files = asdict(ExpectedFiles())
     for file_id, file_name in expected_files.items():
         file_path = settings.raw_data_dir / file_name
         size_byte = None
@@ -139,6 +141,7 @@ def create_manifest(dataset_metadata: list[dict], dataset_version: int, download
             manifest[file_id] = file_manifest
         else:
             raise FileNotFoundError(f"File {file_name} not found.")
+
     return manifest
 
 

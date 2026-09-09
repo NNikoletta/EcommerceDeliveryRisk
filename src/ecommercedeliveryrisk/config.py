@@ -3,6 +3,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import TypedDict
 
+
 @dataclass
 class DownloadResult:
     download_date: str
@@ -72,5 +73,4 @@ def load_settings() -> Settings:
     return Settings(kaggle_dataset=dataset,
                     raw_data_dir=raw_data_dir,
                     manifests_data_dir=manifests_data_dir)
-
 
