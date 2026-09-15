@@ -22,6 +22,8 @@ This ensures that everything becomes relative to the time of approval and all da
 
 As a consequence of the prediction contract, only the orders that are placed and/or received before the examined entry can be used for learning. These entries are treated as historical data.
 An order is only able to contribute outcome-based features if its outcome was known before the examined order's approval time.
+If an order's eventual cancellation, loss, or non-delivery is unknown at approval time, it must not be part of the training data pool.
+The canceled and unavailable orders will be completely discarded in this work.
 
 **Prediction unit:** The prediction unit must be one order, identified by order_id
 
