@@ -22,12 +22,19 @@ This ensures that everything becomes relative to the time of approval and all da
 
 As a consequence of the prediction contract, only the orders that are placed and/or received before the examined entry can be used for learning. These entries are treated as historical data.
 An order is only able to contribute outcome-based features if its outcome was known before the examined order's approval time.
-If an order's eventual cancellation, loss, or non-delivery is unknown at approval time, it must not be part of the training data pool.
-The canceled and unavailable orders will be completely discarded in this work.
+
+Every order that reached the approved status is eligible for prediction at order_approved_at. Only information available at the time of approval can affect the eligibility, and it cannot depend on the order's eventual delivery status.
+
+Delivery outcomes will be divided into two groups. A non-delivery model will be created to predict whether an approved order
+will be canceled, become unavailable, or remain undelivered. A separate late-delivery model will predict if an order will arrive after its promised delivery date, conditional on the order eventually being delivered.
+
+Historical canceled, unavailable, and never-delivered orders will be included when training the non-delivery model but excluded from the conditional late-delivery model because they do not have an observable delivery date.
+
+### Late-delivery model
 
 **Prediction unit:** The prediction unit must be one order, identified by order_id
 
-**Model output:** The probability of an order arriving late with 0 marking the orders arriving on time, and 1 marking the orders that will be definitely late.
+**Model output:** The model outputs the estimated probability that an eligible order will arrive late.
 
 **Target labels:**
 * 0: order arrives on time
@@ -36,7 +43,7 @@ The canceled and unavailable orders will be completely discarded in this work.
 **Target formula:** order_delivered_customer_date > order_estimated_delivery_date: an order can be considered late if it arrived after the estimated delivery date.
 
 **Canceled, unavailable, lost/never-delivered orders:** Orders from these categories will be completely excluded from the training pipeline since their presence may distort the delivery timeline. Orders may get canceled due to a client changing their mind, due to fraud, or due to lack of stock, among others.
-Orders may get lost in transit, or have the wrong shipping address, which is one of the many causes of items not being delivered. These orders need to be taken out of the main training pool, but they may be used for a separate risk prediction.
+Orders may get lost in transit, or have the wrong shipping address, which is one of the many causes of items not being delivered. These orders need to be taken out of the main training pool, but they will be used for a separate non-delivery risk prediction.
 
 **Train/Validate/Test split:** The splitting of the data must happen in a chronological manner with the oldest, historical, entries being the main building blocks of the training dataset.
 The validation dataset will be created from Mid Data, and the test split will be based on the Most Recent Data. The dataset contains orders placed between 2016 and 2018. The dataset will undergo the preprocessing stages to ensure any undelivered, canceled, lost packages are not included, and then will be split into train/validate/test in an 80/10/10 ratio in chronological order.
