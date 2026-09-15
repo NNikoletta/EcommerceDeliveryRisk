@@ -8,7 +8,7 @@
 
 ## Objective
 
-The aim of this project is to create a pipeline that is able to completely automatically predict whether a placed order will arrive late.
+The aim of this project is to create a pipeline that is able to completely automatically predict whether a placed order will be delivered and then if it will be delivered on time in two segments: risk of non-delivery and conditional late-delivery prediction.
 
 Late is defined as "after promised delivery date".
 
@@ -25,7 +25,7 @@ An order is only able to contribute outcome-based features if its outcome was kn
 
 Every order that reached the approved status is eligible for prediction at order_approved_at. Only information available at the time of approval can affect the eligibility, and it cannot depend on the order's eventual delivery status.
 
-Delivery outcomes will be divided into two groups. A non-delivery model will be created to predict whether an approved order
+Delivery outcomes will be divided into two modeling tasks. A non-delivery model will be created to predict whether an approved order
 will be canceled, become unavailable, or remain undelivered. A separate late-delivery model will predict if an order will arrive after its promised delivery date, conditional on the order eventually being delivered.
 
 Historical canceled, unavailable, and never-delivered orders will be included when training the non-delivery model but excluded from the conditional late-delivery model because they do not have an observable delivery date.
