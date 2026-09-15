@@ -107,9 +107,13 @@ def replace_raw_data(settings: Settings, benchmark_manifest_name: str):  # only 
             shutil.rmtree(settings.raw_data_dir)
             shutil.move(tmp_raw_data_dir, settings.raw_data_dir)
     else:
-        shutil.rmtree(settings.raw_data_dir)
-        ensure_dir(settings.raw_data_dir)
-        download_results = download_kaggle_dataset(settings=settings)
+        with tempfile.TemporaryDirectory(dir=settings.raw_data_dir.parent) as tmp_path:
+            tmp_raw_data_dir = Path(tmp_path)
+            download_results = download_kaggle_dataset(settings=settings,
+                                                       data_dir=tmp_raw_data_dir)
+
+            shutil.rmtree(settings.raw_data_dir)
+            shutil.move(tmp_raw_data_dir, settings.raw_data_dir)
 
     logger.info("Dataset was replaced successfully.")
     return download_results

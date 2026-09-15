@@ -100,11 +100,17 @@ def test_download_raw_data(settings, pipeline_mocks,
         assert staging_dir.parent == settings.raw_data_dir.parent
         assert not staging_dir.exists()
     else:
-        validate.assert_not_called()
         expected_kwargs = {'settings': settings}
+        staging_dir = destinations[0]
+        if not benchmark_available and replace_existing:
+            expected_kwargs['data_dir'] = staging_dir
+        validate.assert_not_called()
         if benchmark_available:
             expected_kwargs['dataset_version'] = 1
         download.assert_called_once_with(**expected_kwargs)
+        if replace_existing:
+            assert staging_dir.parent == settings.raw_data_dir.parent
+            assert not staging_dir.exists()
     assert not old_file.exists()
     assert (settings.raw_data_dir / "new.csv").read_text(encoding='utf-8') == "downloaded data"
 
