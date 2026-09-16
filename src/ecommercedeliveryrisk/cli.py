@@ -56,7 +56,7 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     except (FileNotFoundError, ValueError) as error:
         logger.error("Pipeline failed: %s", error)
-        raise SystemExit(1)
+        raise SystemExit(1) from None
     except Exception:
         logger.exception("Pipeline failed unexpectedly.")
         raise

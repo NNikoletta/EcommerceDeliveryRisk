@@ -204,7 +204,7 @@ def test_validate_data(valid_case, directory_available, files_available):
         for file in settings.raw_data_dir.iterdir():
             file.unlink()
         settings.raw_data_dir.rmdir()
-        with pytest.raises(FileNotFoundError, match="The file directory '.*' does not exist."):
+        with pytest.raises(FileNotFoundError, match=r"The file directory '.*' does not exist\."):
             validation_module.validate_data(
                 data_dir=data_dir, manifests_dir=settings.manifests_data_dir
             )
@@ -213,7 +213,7 @@ def test_validate_data(valid_case, directory_available, files_available):
         for file in settings.raw_data_dir.iterdir():
             file.unlink()
         with pytest.raises(
-            FileNotFoundError, match="The file directory '.*' does not contain any files."
+            FileNotFoundError, match=r"The file directory '.*' does not contain any files\."
         ):
             validation_module.validate_data(
                 data_dir=settings.raw_data_dir, manifests_dir=settings.manifests_data_dir

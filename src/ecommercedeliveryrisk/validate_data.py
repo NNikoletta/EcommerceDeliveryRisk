@@ -22,7 +22,7 @@ def validate_files_and_path(
     data_dir, manifests_dir, benchmark_manifest_name="benchmark_raw_data_manifest.json"
 ):
     config = asdict(ExpectedFiles())
-    expected_file_count = len(list([key for key in config]))
+    expected_file_count = len(config)
 
     if not data_dir.exists():
         raise FileNotFoundError(f"The file directory '{data_dir}' does not exist.")
@@ -128,13 +128,16 @@ def compare_manifests(manifests_dir, benchmark_manifest="benchmark_raw_data_mani
                 raise ValueError("The manifest data does not match the benchmark data.\n")
 
             for benchmark_key, benchmark_value in benchmark_file_manifest.items():
-                if benchmark_key != "download_date" and benchmark_key != "file_path":
-                    if benchmark_value != tmp_file_manifest[benchmark_key]:
-                        raise ValueError(
-                            f"The manifest data does not match the benchmark data.\n"
-                            f"Expected key-value pair: {benchmark_key}-{benchmark_value}\n"
-                            f"Found key-value pair: {benchmark_key}-{tmp_file_manifest[benchmark_key]}\n"
-                        )
+                if (
+                    benchmark_key != "download_date"
+                    and benchmark_key != "file_path"
+                    and benchmark_value != tmp_file_manifest[benchmark_key]
+                ):
+                    raise ValueError(
+                        f"The manifest data does not match the benchmark data.\n"
+                        f"Expected key-value pair: {benchmark_key}-{benchmark_value}\n"
+                        f"Found key-value pair: {benchmark_key}-{tmp_file_manifest[benchmark_key]}\n"
+                    )
         logger.info("Comparison validation completed successfully.")
     else:
         logger.info("Comparison validation could not be made.\nRequired files were not found.")
