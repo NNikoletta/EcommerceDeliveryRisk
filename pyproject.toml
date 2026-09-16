@@ -22,5 +22,32 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "pyright>=1.1.414",
     "pytest>=9.1.1",
+    "ruff>=0.16.8",
 ]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E4",  # basic python errors and structural style problems
+    "E7",
+    "E9",
+    "F",  # unused imports/undrfined var/similar correctness issues
+    "I",  # import ordering
+    "UP",  # outdated python syntax -> modernize
+    "B",  # common bug-prone patterns
+    "C4",  # unnecessary or inefficient collection construction
+    "RET",  # confusing or unnecessary return statements
+    "SIM",  # unnecessarily complicated expressions
+    "PERF",  # straightforward performance mistakes
+    "RUF",  # Ruff-specific correctness checks
+]
+
+[tool.pyright]
+include = ["src", "main.py"]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"

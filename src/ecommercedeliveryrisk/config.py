@@ -1,8 +1,7 @@
 import os
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TypedDict
-from enum import StrEnum
 
 
 @dataclass(frozen=True)
@@ -17,11 +16,13 @@ class ExpectedFiles:
     sellers: str = "olist_sellers_dataset.csv"
     translation: str = "product_category_name_translation.csv"
 
+
 @dataclass
 class DownloadResult:
     download_date: str
     dataset_metadata: list[dict]
     dataset_version: int
+
 
 class FileManifest(TypedDict):
     file_name: str
@@ -35,6 +36,7 @@ class FileManifest(TypedDict):
     column_count: int
     row_count: int
     column_names: list[str]
+
 
 project_root = Path(__file__).resolve().parents[2]
 
@@ -51,13 +53,17 @@ class Settings:
     def __post_init__(self) -> None:
         parts = self.kaggle_dataset.split("/")
 
-        if(len(parts) != 2
-           or not all(parts)
-           or any(character.isspace() for character in self.kaggle_dataset)):
+        if (
+            len(parts) != 2
+            or not all(parts)
+            or any(character.isspace() for character in self.kaggle_dataset)
+        ):
             raise ValueError("KAGGLE_DATASET must use the format 'owner/dataset'.")
 
-        for name, path in (("raw_data_dir", self.raw_data_dir),
-                           ("manifests_data_dir", self.manifests_data_dir)):
+        for name, path in (
+            ("raw_data_dir", self.raw_data_dir),
+            ("manifests_data_dir", self.manifests_data_dir),
+        ):
             if not isinstance(path, Path):
                 raise TypeError(f"Expected {name} to be a Path object.")
 
@@ -71,10 +77,6 @@ def load_settings() -> Settings:
     if not dataset:
         raise ValueError("KAGGLE_DATASET environment variable is missing or empty.")
 
-    return Settings(kaggle_dataset=dataset,
-                    raw_data_dir=raw_data_dir,
-                    manifests_data_dir=manifests_data_dir)
-
-
-
-
+    return Settings(
+        kaggle_dataset=dataset, raw_data_dir=raw_data_dir, manifests_data_dir=manifests_data_dir
+    )
