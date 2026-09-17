@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 from ecommercedeliveryrisk.config import load_settings, project_root
 from ecommercedeliveryrisk.download_data import download_raw_data
+from ecommercedeliveryrisk.ingest_data import run_ingestion
 from ecommercedeliveryrisk.validate_data import compare_manifests, validate_data
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Validate the existing raw data without downloading.",
     )
 
+    mode.add_argument(
+        "--ingest",
+        action="store_true",
+        help="Load the validated raw CSV files into PostgreSQL."
+    )
+
     return parser
 
 
@@ -53,6 +60,9 @@ def main(argv: Sequence[str] | None = None) -> None:
         validate_data(data_dir=settings.raw_data_dir, manifests_dir=settings.manifests_data_dir)
 
         compare_manifests(manifests_dir=settings.manifests_data_dir)
+
+        if args.ingest:
+            run_ingestion(settings)
 
     except (FileNotFoundError, ValueError) as error:
         logger.error("Pipeline failed: %s", error)
