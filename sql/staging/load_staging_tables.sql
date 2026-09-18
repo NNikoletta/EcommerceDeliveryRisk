@@ -7,7 +7,7 @@ TRUNCATE TABLE
     staging.customers,
     staging.sellers,
     staging.geolocation,
-    staging.product_category_name_translation;
+    staging.translations;
 
 ----------------------------------------------
 --CUSTOMERS TABLE
@@ -61,8 +61,8 @@ INSERT INTO staging.products (
 SELECT
     NULLIF(TRIM(product_id), ''),
     NULLIF(TRIM(product_category_name), ''),
-    NULLIF(TRIM(product_name_length), '')::INTEGER,
-    NULLIF(TRIM(product_description_length), '')::INTEGER,
+    NULLIF(TRIM(product_name_lenght), '')::INTEGER,
+    NULLIF(TRIM(product_description_lenght), '')::INTEGER,
     NULLIF(TRIM(product_photos_qty), '')::INTEGER,
     NULLIF(TRIM(product_weight_g), '')::INTEGER,
     NULLIF(TRIM(product_length_cm), '')::INTEGER,
@@ -73,14 +73,14 @@ FROM raw.products;
 ----------------------------------------------
 --PRODUCT CATEGORY NAME TRANSLATION TABLE
 ----------------------------------------------
-INSERT INTO staging.product_category_name_translation (
+INSERT INTO staging.translations (
     product_category_name,
     product_category_name_english
 )
 SELECT
     NULLIF(TRIM(product_category_name), ''),
     NULLIF(TRIM(product_category_name_english), '')
-FROM raw.product_category_name_translation;
+FROM raw.translations;
 
 ----------------------------------------------
 --GEOLOCATION TABLE

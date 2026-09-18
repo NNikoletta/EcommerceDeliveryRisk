@@ -51,7 +51,7 @@ def execute_sql_file(connection: psycopg.Connection, sql_file: Path) -> None:
     with connection.cursor() as cursor:
         cursor.execute(statement)
 
-    logger.info(f"File '{sql_file.name}' was successfully executed.")
+    logger.info("File '%s' was successfully executed.", sql_file.name)
 
 
 def copy_csv_to_table(connection: psycopg.Connection, table_name: str, csv_path: Path) -> None:
@@ -77,7 +77,7 @@ def copy_csv_to_table(connection: psycopg.Connection, table_name: str, csv_path:
                 copy.write(chunk)
 
 
-def get_table_row_count(connection: psycopg.Connection, table_name: str) -> int | None:
+def get_table_row_count(connection: psycopg.Connection, table_name: str) -> int:
     row_count = sql.SQL("SELECT COUNT(*) FROM raw.{}").format(sql.Identifier(table_name))
 
     with connection.cursor() as cursor:
@@ -90,7 +90,7 @@ def get_table_row_count(connection: psycopg.Connection, table_name: str) -> int 
     return result[0]
 
 
-class RowCountMissmatchError(ValueError):
+class RowCountMismatchError(ValueError):
     pass
 
 
@@ -100,9 +100,9 @@ def validate_table_row_count(
     actual_row_count = get_table_row_count(connection=connection, table_name=table_name)
 
     if actual_row_count != expected_row_count:
-        raise RowCountMissmatchError(
-            f"Unexpected number of rows found in table '{table_name}'."
-            f"Expected row count: {expected_row_count}"
+        raise RowCountMismatchError(
+            f"Unexpected number of rows found in table '{table_name}'.\n"
+            f"Expected row count: {expected_row_count}\n"
             f"Found: {actual_row_count}"
         )
 
@@ -111,7 +111,7 @@ def ingest_raw_data(
     connection: psycopg.Connection, raw_data_dir: Path, manifests_data_dir: Path
 ) -> None:
     benchmark_manifest_path = manifests_data_dir / "benchmark_raw_data_manifest.json"
-    with benchmark_manifest_path.open("r") as json_file:
+    with benchmark_manifest_path.open("r", encoding="utf-8") as json_file:
         benchmark_manifest_data = json.load(json_file)
 
     for table_name, file_name in RAW_TABLES.items():
