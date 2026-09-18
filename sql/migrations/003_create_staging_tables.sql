@@ -1,7 +1,7 @@
 ----------------------------------------------
 --CUSTOMERS TABLE
 ----------------------------------------------
-CREATE TABLE staging.customers (
+CREATE TABLE IF NOT EXISTS staging.customers (
     customer_id TEXT NOT NULL,
     customer_unique_id TEXT,
     customer_zip_code_prefix TEXT,
@@ -14,7 +14,7 @@ CREATE TABLE staging.customers (
 ----------------------------------------------
 --SELLERS TABLE
 ----------------------------------------------
-CREATE TABLE staging.sellers (
+CREATE TABLE IF NOT EXISTS staging.sellers (
     seller_id TEXT NOT NULL,
     seller_zip_code_prefix TEXT,
     seller_city TEXT,
@@ -26,11 +26,11 @@ CREATE TABLE staging.sellers (
 ----------------------------------------------
 --PRODUCTS TABLE
 ----------------------------------------------
-CREATE TABLE staging.products (
+CREATE TABLE IF NOT EXISTS staging.products (
     product_id TEXT NOT NULL,
     product_category_name TEXT,
-    product_name_length INTEGER,
-    product_description_length INTEGER,
+    product_name_lenght INTEGER,
+    product_description_lenght INTEGER,
     product_photos_qty INTEGER,
     product_weight_g INTEGER,
     product_length_cm INTEGER,
@@ -43,15 +43,17 @@ CREATE TABLE staging.products (
 ----------------------------------------------
 --PRODUCT CATEGORY NAME TRANSLATION TABLE
 ----------------------------------------------
-CREATE TABLE staging.product_category_name_translation (
-    product_category_name TEXT,
-    product_category_name_english TEXT
+CREATE TABLE IF NOT EXISTS staging.translations (
+    product_category_name TEXT NOT NULL,
+    product_category_name_english TEXT,
+
+    CONSTRAINT pk_translations PRIMARY KEY (product_category_name)
 );
 
 ----------------------------------------------
 --GEOLOCATION TABLE
 ----------------------------------------------
-CREATE TABLE staging.geolocation (
+CREATE TABLE IF NOT EXISTS staging.geolocation (
     geolocation_zip_code_prefix TEXT,
     geolocation_lat NUMERIC,
     geolocation_lng NUMERIC,
@@ -62,7 +64,7 @@ CREATE TABLE staging.geolocation (
 ----------------------------------------------
 --ORDERS TABLE
 ----------------------------------------------
-CREATE TABLE staging.orders (
+CREATE TABLE IF NOT EXISTS staging.orders (
     order_id TEXT NOT NULL,
     customer_id TEXT NOT NULL,
     order_status TEXT,
@@ -80,14 +82,14 @@ CREATE TABLE staging.orders (
 ----------------------------------------------
 --ORDER ITEMS TABLE
 ----------------------------------------------
-CREATE TABLE staging.order_items (
+CREATE TABLE IF NOT EXISTS staging.order_items (
     order_id TEXT NOT NULL,
     order_item_id INTEGER NOT NULL,
     product_id TEXT NOT NULL,
     seller_id TEXT NOT NULL,
     shipping_limit_date TIMESTAMP,
-    price NUMERIC,
-    freight_value NUMERIC,
+    price NUMERIC(12,2),
+    freight_value NUMERIC(12,2),
 
     CONSTRAINT pk_order_items PRIMARY KEY (order_id, order_item_id),
 
@@ -99,12 +101,14 @@ CREATE TABLE staging.order_items (
 ----------------------------------------------
 --ORDER PAYMENTS TABLE
 ----------------------------------------------
-CREATE TABLE staging.order_payments (
+CREATE TABLE IF NOT EXISTS staging.order_payments (
     order_id TEXT NOT NULL,
     payment_sequential INTEGER NOT NULL,
     payment_type TEXT,
     payment_installments INTEGER,
-    payment_value NUMERIC,
+    payment_value NUMERIC(12,2),
+
+    CONSTRAINT pk_order_payments PRIMARY KEY (order_id, payment_sequential),
 
     CONSTRAINT fk_order_payments_orders FOREIGN KEY (order_id) REFERENCES staging.orders (order_id)
 );
@@ -112,7 +116,7 @@ CREATE TABLE staging.order_payments (
 ----------------------------------------------
 --ORDER REVIEWS TABLE
 ----------------------------------------------
-CREATE TABLE staging.order_reviews (
+CREATE TABLE IF NOT EXISTS staging.order_reviews (
     review_id TEXT,
     order_id TEXT,
     review_score INTEGER,

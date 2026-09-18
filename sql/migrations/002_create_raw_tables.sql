@@ -56,8 +56,8 @@ CREATE TABLE IF NOT EXISTS raw.order_reviews (
 CREATE TABLE IF NOT EXISTS raw.products (
     product_id TEXT,
     product_category_name TEXT,
-    product_name_length TEXT,
-    product_description_length TEXT,
+    product_name_lenght TEXT,
+    product_description_lenght TEXT,
     product_photos_qty TEXT,
     product_weight_g TEXT,
     product_length_cm TEXT,
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS raw.sellers (
     seller_state TEXT
 );
 
-CREATE TABLE IF NOT EXISTS raw.product_category_name_translation (
+CREATE TABLE IF NOT EXISTS raw.translations (
     product_category_name TEXT,
     product_category_name_english TEXT
 );

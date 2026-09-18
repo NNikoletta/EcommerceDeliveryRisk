@@ -14,7 +14,7 @@ class ExpectedFiles:
     orders: str = "olist_orders_dataset.csv"
     products: str = "olist_products_dataset.csv"
     sellers: str = "olist_sellers_dataset.csv"
-    translation: str = "product_category_name_translation.csv"
+    translations: str = "product_category_name_translation.csv"
 
 
 @dataclass

@@ -1,3 +1,5 @@
+import json
+import logging
 import os
 from pathlib import Path
 from typing import LiteralString, cast
@@ -5,7 +7,9 @@ from typing import LiteralString, cast
 import psycopg
 from psycopg import sql
 
-from ecommercedeliveryrisk.config import project_root
+from ecommercedeliveryrisk.config import Settings, project_root
+
+logger = logging.getLogger(__name__)
 
 RAW_TABLES = {
     "customers": "olist_customers_dataset.csv",
@@ -16,7 +20,7 @@ RAW_TABLES = {
     "orders": "olist_orders_dataset.csv",
     "products": "olist_products_dataset.csv",
     "sellers": "olist_sellers_dataset.csv",
-    "product_category_name_translation": "product_category_name_translation.csv",
+    "translations": "product_category_name_translation.csv",
 }
 
 
@@ -47,6 +51,8 @@ def execute_sql_file(connection: psycopg.Connection, sql_file: Path) -> None:
     with connection.cursor() as cursor:
         cursor.execute(statement)
 
+    logger.info(f"File '{sql_file.name}' was successfully executed.")
+
 
 def copy_csv_to_table(connection: psycopg.Connection, table_name: str, csv_path: Path) -> None:
     truncate_statement = sql.SQL("TRUNCATE TABLE raw.{}").format(sql.Identifier(table_name))
@@ -71,7 +77,43 @@ def copy_csv_to_table(connection: psycopg.Connection, table_name: str, csv_path:
                 copy.write(chunk)
 
 
-def ingest_raw_data(connection: psycopg.Connection, raw_data_dir: Path) -> None:
+def get_table_row_count(connection: psycopg.Connection, table_name: str) -> int | None:
+    row_count = sql.SQL("SELECT COUNT(*) FROM raw.{}").format(sql.Identifier(table_name))
+
+    with connection.cursor() as cursor:
+        cursor.execute(row_count)
+        result = cursor.fetchone()
+
+    if result is None:
+        raise RuntimeError(f"PostgreSQL returned no row count for raw table '{table_name}'.")
+
+    return result[0]
+
+
+class RowCountMissmatchError(ValueError):
+    pass
+
+
+def validate_table_row_count(
+    connection: psycopg.Connection, table_name: str, expected_row_count: int
+) -> None:
+    actual_row_count = get_table_row_count(connection=connection, table_name=table_name)
+
+    if actual_row_count != expected_row_count:
+        raise RowCountMissmatchError(
+            f"Unexpected number of rows found in table '{table_name}'."
+            f"Expected row count: {expected_row_count}"
+            f"Found: {actual_row_count}"
+        )
+
+
+def ingest_raw_data(
+    connection: psycopg.Connection, raw_data_dir: Path, manifests_data_dir: Path
+) -> None:
+    benchmark_manifest_path = manifests_data_dir / "benchmark_raw_data_manifest.json"
+    with benchmark_manifest_path.open("r") as json_file:
+        benchmark_manifest_data = json.load(json_file)
+
     for table_name, file_name in RAW_TABLES.items():
         csv_path = raw_data_dir / file_name
 
@@ -79,9 +121,18 @@ def ingest_raw_data(connection: psycopg.Connection, raw_data_dir: Path) -> None:
             raise FileNotFoundError(f"Required ingestion file was not found: {csv_path}")
 
         copy_csv_to_table(connection=connection, table_name=table_name, csv_path=csv_path)
+        validate_table_row_count(
+            connection=connection,
+            table_name=table_name,
+            expected_row_count=benchmark_manifest_data[table_name]["row_count"],
+        )
+
+    logger.info("Raw data files ingested successfully.")
 
 
-def run_ingestion(settings) -> None:
+def run_ingestion(settings: Settings) -> None:
+    create_schemas = project_root / "sql" / "migrations" / "001_create_schemas.sql"
+
     raw_tables_sql = project_root / "sql" / "migrations" / "002_create_raw_tables.sql"
 
     staging_tables_sql = project_root / "sql" / "migrations" / "003_create_staging_tables.sql"
@@ -89,9 +140,14 @@ def run_ingestion(settings) -> None:
     load_staging_tables_sql = project_root / "sql" / "staging" / "load_staging_tables.sql"
 
     with connect_to_database() as connection:
+        execute_sql_file(connection=connection, sql_file=create_schemas)
         execute_sql_file(connection=connection, sql_file=raw_tables_sql)
-
-        ingest_raw_data(connection=connection, raw_data_dir=settings.raw_data_dir)
-
         execute_sql_file(connection=connection, sql_file=staging_tables_sql)
+
+        ingest_raw_data(
+            connection=connection,
+            raw_data_dir=settings.raw_data_dir,
+            manifests_data_dir=settings.manifests_data_dir,
+        )
+
         execute_sql_file(connection=connection, sql_file=load_staging_tables_sql)
