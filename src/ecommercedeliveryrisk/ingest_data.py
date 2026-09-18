@@ -1,11 +1,10 @@
 import os
+from pathlib import Path
+
 import psycopg
 from psycopg import sql
 
-from pathlib import Path
-
 from ecommercedeliveryrisk.config import project_root
-
 
 RAW_TABLES = {
     "customers": "olist_customers_dataset.csv",
@@ -16,33 +15,33 @@ RAW_TABLES = {
     "orders": "olist_orders_dataset.csv",
     "products": "olist_products_dataset.csv",
     "sellers": "olist_sellers_dataset.csv",
-    "product_category_name_translation": "product_category_name_translation.csv"
+    "product_category_name_translation": "product_category_name_translation.csv",
 }
+
 
 def connect_to_database() -> psycopg.Connection:
     return psycopg.connect(
-        host = os.environ["POSTGRES_HOST"],
-        port = os.environ["POSTGRES_PORT"],
-        dbname = os.environ["POSTGRES_DB"],
-        user = os.environ["POSTGRES_USER"],
-        password = os.environ["POSTGRES_PASSWORD"]
+        host=os.environ["POSTGRES_HOST"],
+        port=os.environ["POSTGRES_PORT"],
+        dbname=os.environ["POSTGRES_DB"],
+        user=os.environ["POSTGRES_USER"],
+        password=os.environ["POSTGRES_PASSWORD"],
     )
 
-def create_raw_tables(
-        connection: psycopg.Connection,
-        sql_file: Path
-) -> None:
-    statement = sql_file.read_text(encoding="utf-8")
-    connection.execute(statement)
 
-def copy_csv_to_table(
-        connection: psycopg.Connection,
-        table_name: str,
-        csv_path: Path
-) -> None:
-    truncate_statement = sql.SQL(
-        "TRUNCATE TABLE raw.{}"
-    ).format(sql.Identifier(table_name))
+def execute_sql_file(connection: psycopg.Connection, sql_file: Path) -> None:
+
+    if not sql_file.is_file():
+        raise FileNotFoundError(f"SQL file was not found: {sql_file}")
+
+    statement = sql_file.read_text(encoding="utf-8")
+
+    with connection.cursor() as cursor:
+        cursor.execute(statement)
+
+
+def copy_csv_to_table(connection: psycopg.Connection, table_name: str, csv_path: Path) -> None:
+    truncate_statement = sql.SQL("TRUNCATE TABLE raw.{}").format(sql.Identifier(table_name))
 
     copy_statement = sql.SQL(
         """
@@ -59,45 +58,32 @@ def copy_csv_to_table(
     with connection.cursor() as cursor:
         cursor.execute(truncate_statement)
 
-        with csv_path.open("rb") as csv_file:
-            with cursor.copy(copy_statement) as copy:
-                while chunk := csv_file.read(1024 * 1024):
-                    copy.write(chunk)
+        with csv_path.open("rb") as csv_file, cursor.copy(copy_statement) as copy:
+            while chunk := csv_file.read(1024 * 1024):
+                copy.write(chunk)
 
-def ingest_raw_data(
-        connection: psycopg.Connection,
-        raw_data_dir: Path
-) -> None:
+
+def ingest_raw_data(connection: psycopg.Connection, raw_data_dir: Path) -> None:
     for table_name, file_name in RAW_TABLES.items():
         csv_path = raw_data_dir / file_name
 
         if not csv_path.is_file():
-            raise FileNotFoundError(
-                f"Required ingestion file was not found: {csv_path}"
-            )
+            raise FileNotFoundError(f"Required ingestion file was not found: {csv_path}")
 
-        copy_csv_to_table(
-            connection=connection,
-            table_name=table_name,
-            csv_path=csv_path
-            )
+        copy_csv_to_table(connection=connection, table_name=table_name, csv_path=csv_path)
+
 
 def run_ingestion(settings) -> None:
-    sql_file = (
-        project_root
-        / "sql"
-        / "migrations"
-        / "002_create_raw_tables.sql"
-    )
+    raw_tables_sql = project_root / "sql" / "migrations" / "002_create_raw_tables.sql"
 
+    staging_tables_sql = project_root / "sql" / "migrations" / "003_create_staging_tables.sql"
+
+    load_staging_tables_sql = project_root / "sql" / "staging" / "load_staging_tables.sql"
 
     with connect_to_database() as connection:
-        create_raw_tables(
-            connection=connection,
-            sql_file=sql_file
-        )
+        execute_sql_file(connection=connection, sql_file=raw_tables_sql)
 
-        ingest_raw_data(
-            connection=connection,
-            raw_data_dir=settings.raw_data_dir
-        )
+        ingest_raw_data(connection=connection, raw_data_dir=settings.raw_data_dir)
+
+        execute_sql_file(connection=connection, sql_file=staging_tables_sql)
+        execute_sql_file(connection=connection, sql_file=load_staging_tables_sql)

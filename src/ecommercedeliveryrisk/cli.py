@@ -33,9 +33,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     mode.add_argument(
-        "--ingest",
-        action="store_true",
-        help="Load the validated raw CSV files into PostgreSQL."
+        "--ingest", action="store_true", help="Load the validated raw CSV files into PostgreSQL."
     )
 
     return parser
