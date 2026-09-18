@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import LiteralString, cast
 
 import psycopg
 from psycopg import sql
@@ -29,12 +30,19 @@ def connect_to_database() -> psycopg.Connection:
     )
 
 
+def read_trusted_sql(sql_file: Path) -> LiteralString:
+    return cast(
+        LiteralString,
+        sql_file.read_text(encoding="utf-8"),
+    )
+
+
 def execute_sql_file(connection: psycopg.Connection, sql_file: Path) -> None:
 
     if not sql_file.is_file():
         raise FileNotFoundError(f"SQL file was not found: {sql_file}")
 
-    statement = sql_file.read_text(encoding="utf-8")
+    statement = read_trusted_sql(sql_file)
 
     with connection.cursor() as cursor:
         cursor.execute(statement)
