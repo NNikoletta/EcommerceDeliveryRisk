@@ -24,21 +24,52 @@ RAW_TABLES = {
 }
 
 
+class DatabaseConfigurationError(ValueError):
+    pass
+
+
+def get_required_environment_variable(name: str) -> str:
+    value = os.getenv(name)
+
+    if value is None or not value.strip():
+        raise DatabaseConfigurationError(
+            f"Required environment variable '{name}' is empty or missing."
+        )
+
+    return value
+
+
+def get_postgres_port() -> int:
+    value = get_required_environment_variable("POSTGRES_PORT")
+
+    try:
+        port = int(value)
+    except ValueError as error:
+        raise DatabaseConfigurationError("POSTGRES_PORT must be a valid integer.") from error
+
+    if not 1 <= port <= 65535:
+        raise DatabaseConfigurationError("POSTGRES_PORT must be between 1 and 65535.")
+    return port
+
+
 def connect_to_database() -> psycopg.Connection:
-    return psycopg.connect(
-        host=os.environ["POSTGRES_HOST"],
-        port=os.environ["POSTGRES_PORT"],
-        dbname=os.environ["POSTGRES_DB"],
-        user=os.environ["POSTGRES_USER"],
-        password=os.environ["POSTGRES_PASSWORD"],
-    )
+    host = get_required_environment_variable("POSTGRES_HOST").strip()
+    port = get_postgres_port()
+    database = get_required_environment_variable("POSTGRES_DB").strip()
+    user = get_required_environment_variable("POSTGRES_USER").strip()
+    password = get_required_environment_variable("POSTGRES_PASSWORD")
+
+    try:
+        return psycopg.connect(host=host, port=port, dbname=database, user=user, password=password)
+    except psycopg.OperationalError as error:
+        raise DatabaseConfigurationError(
+            "Could not connect to PostgreSQL. Verify that the database is running and "
+            "the connection settings are correct."
+        ) from error
 
 
 def read_trusted_sql(sql_file: Path) -> LiteralString:
-    return cast(
-        LiteralString,
-        sql_file.read_text(encoding="utf-8"),
-    )
+    return cast(LiteralString, sql_file.read_text(encoding="utf-8"))
 
 
 def execute_sql_file(connection: psycopg.Connection, sql_file: Path) -> None:
@@ -54,12 +85,15 @@ def execute_sql_file(connection: psycopg.Connection, sql_file: Path) -> None:
     logger.info("File '%s' was successfully executed.", sql_file.name)
 
 
-def copy_csv_to_table(connection: psycopg.Connection, table_name: str, csv_path: Path) -> None:
+def copy_csv_to_table(
+    connection: psycopg.Connection, table_name: str, csv_path: Path, column_names: list
+) -> None:
     truncate_statement = sql.SQL("TRUNCATE TABLE raw.{}").format(sql.Identifier(table_name))
 
+    columns = sql.SQL(", ").join(sql.Identifier(column_name) for column_name in column_names)
     copy_statement = sql.SQL(
         """
-        COPY raw.{}
+        COPY raw.{} ({})
         FROM STDIN
         WITH (
             FORMAT CSV,
@@ -67,7 +101,7 @@ def copy_csv_to_table(connection: psycopg.Connection, table_name: str, csv_path:
             ENCODING 'UTF8'
         )
         """
-    ).format(sql.Identifier(table_name))
+    ).format(sql.Identifier(table_name), columns)
 
     with connection.cursor() as cursor:
         cursor.execute(truncate_statement)
@@ -120,7 +154,12 @@ def ingest_raw_data(
         if not csv_path.is_file():
             raise FileNotFoundError(f"Required ingestion file was not found: {csv_path}")
 
-        copy_csv_to_table(connection=connection, table_name=table_name, csv_path=csv_path)
+        copy_csv_to_table(
+            connection=connection,
+            table_name=table_name,
+            csv_path=csv_path,
+            column_names=benchmark_manifest_data[table_name]["column_names"],
+        )
         validate_table_row_count(
             connection=connection,
             table_name=table_name,
