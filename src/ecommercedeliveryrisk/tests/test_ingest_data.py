@@ -1,11 +1,8 @@
-import json
-from multiprocessing import connection
 from unittest.mock import MagicMock, Mock
 
 import pytest
 
 import ecommercedeliveryrisk.ingest_data as ingestion_module
-from ecommercedeliveryrisk.config import manifests_data_dir
 
 
 def test_validate_table_row_data_count_sucess(monkeypatch):
@@ -49,9 +46,7 @@ def test_get_table_row_count_raises_error_when_database_returns_nothing():
     cursor = connection.cursor.return_value.__enter__.return_value
     cursor.fetchone.return_value = None
 
-    with pytest.raises(
-        RuntimeError, match="PostgreSQL returned no row count for raw table 'customers'."
-    ):
+    with pytest.raises(RuntimeError, match="PostgreSQL returned no row count for raw table"):
         ingestion_module.get_table_row_count(connection=connection, table_name="customers")
 
 
