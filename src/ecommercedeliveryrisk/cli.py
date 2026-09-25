@@ -20,11 +20,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     mode = parser.add_mutually_exclusive_group()
 
-    mode.add_argument(
-        "--download",
-        action="store_true",
-        help="Download raw data."
-    )
+    mode.add_argument("--download", action="store_true", help="Download raw data.")
 
     mode.add_argument(
         "--replace-existing",
@@ -60,7 +56,12 @@ def main(argv: Sequence[str] | None = None) -> None:
         load_dotenv(project_root / ".env")
         settings = load_settings()
 
-        if not args.download and not args.replace_existing and not args.validate and not args.ingest:
+        if (
+            not args.download
+            and not args.replace_existing
+            and not args.validate
+            and not args.ingest
+        ):
             download_raw_data(settings=settings, replace_existing=False)
             validate_data(data_dir=settings.raw_data_dir, manifests_dir=settings.manifests_data_dir)
             compare_manifests(manifests_dir=settings.manifests_data_dir)

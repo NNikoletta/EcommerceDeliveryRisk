@@ -10,7 +10,7 @@ from ecommercedeliveryrisk.config import Settings
     "arguments,expected_replace,download,validate,ingest",
     [
         pytest.param([], False, True, True, True, id="default"),
-        pytest.param(["--download"], False, True, False, False,id="download"),
+        pytest.param(["--download"], False, True, False, False, id="download"),
         pytest.param(["--replace-existing"], True, True, False, False, id="replace-existing"),
         pytest.param(["--validate"], False, False, True, False, id="validate"),
         pytest.param(["--ingest"], False, False, False, True, id="ingest"),
