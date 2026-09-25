@@ -15,10 +15,16 @@ logger = logging.getLogger(__name__)
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ecommercedeliveryrisk",
-        description="Download and validate Brazilian Ecommerce Delivery Risk raw data.",
+        description="Download, validate, and ingest Brazilian Ecommerce Delivery Risk raw data.",
     )
 
     mode = parser.add_mutually_exclusive_group()
+
+    mode.add_argument(
+        "--download",
+        action="store_true",
+        help="Download raw data."
+    )
 
     mode.add_argument(
         "--replace-existing",
@@ -27,13 +33,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     mode.add_argument(
-        "--validate-only",
+        "--validate",
         action="store_true",
         help="Validate the existing raw data without downloading.",
     )
 
     mode.add_argument(
-        "--ingest", action="store_true", help="Load the validated raw CSV files into PostgreSQL."
+        "--ingest",
+        action="store_true",
+        help="Load the validated raw CSV files into PostgreSQL.",
     )
 
     return parser
@@ -52,15 +60,18 @@ def main(argv: Sequence[str] | None = None) -> None:
         load_dotenv(project_root / ".env")
         settings = load_settings()
 
-        if not args.validate_only:
+        if not args.download and not args.replace_existing and not args.validate and not args.ingest:
+            download_raw_data(settings=settings, replace_existing=False)
+            validate_data(data_dir=settings.raw_data_dir, manifests_dir=settings.manifests_data_dir)
+            compare_manifests(manifests_dir=settings.manifests_data_dir)
+            run_ingestion(settings=settings)
+        elif args.download or args.replace_existing:
             download_raw_data(settings=settings, replace_existing=args.replace_existing)
-
-        validate_data(data_dir=settings.raw_data_dir, manifests_dir=settings.manifests_data_dir)
-
-        compare_manifests(manifests_dir=settings.manifests_data_dir)
-
-        if args.ingest:
-            run_ingestion(settings)
+        elif args.validate:
+            validate_data(data_dir=settings.raw_data_dir, manifests_dir=settings.manifests_data_dir)
+            compare_manifests(manifests_dir=settings.manifests_data_dir)
+        elif args.ingest:
+            run_ingestion(settings=settings)
 
     except (FileNotFoundError, ValueError) as error:
         logger.error("Pipeline failed: %s", error)
