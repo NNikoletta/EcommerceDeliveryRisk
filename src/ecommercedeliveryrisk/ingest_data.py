@@ -1,13 +1,14 @@
 import json
 import logging
 import os
+from importlib.resources import as_file, files
 from pathlib import Path
 from typing import LiteralString, cast
 
 import psycopg
 from psycopg import sql
 
-from ecommercedeliveryrisk.config import Settings, project_root
+from ecommercedeliveryrisk.config import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -170,13 +171,25 @@ def ingest_raw_data(
 
 
 def run_ingestion(settings: Settings) -> None:
-    create_schemas = project_root / "sql" / "migrations" / "001_create_schemas.sql"
+    with as_file(
+        files("ecommercedeliveryrisk.sql.migrations").joinpath("001_create_schemas.sql")
+    ) as path:
+        create_schemas = path
 
-    raw_tables_sql = project_root / "sql" / "migrations" / "002_create_raw_tables.sql"
+    with as_file(
+        files("ecommercedeliveryrisk.sql.migrations").joinpath("002_create_raw_tables.sql")
+    ) as path:
+        raw_tables_sql = path
 
-    staging_tables_sql = project_root / "sql" / "migrations" / "003_create_staging_tables.sql"
+    with as_file(
+        files("ecommercedeliveryrisk.sql.migrations").joinpath("003_create_staging_tables.sql")
+    ) as path:
+        staging_tables_sql = path
 
-    load_staging_tables_sql = project_root / "sql" / "staging" / "load_staging_tables.sql"
+    with as_file(
+        files("ecommercedeliveryrisk.sql.staging").joinpath("load_staging_tables.sql")
+    ) as path:
+        load_staging_tables_sql = path
 
     with connect_to_database() as connection:
         execute_sql_file(connection=connection, sql_file=create_schemas)
