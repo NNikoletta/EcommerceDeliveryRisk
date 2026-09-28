@@ -172,29 +172,28 @@ def ingest_raw_data(
 
 def run_ingestion(settings: Settings) -> None:
     with (
-        as_file(files("ecommercedeliveryrisk.sql.migrations").joinpath("001_create_schemas.sql")),
+        as_file(
+            files("ecommercedeliveryrisk.sql.migrations").joinpath("001_create_schemas.sql")
+        ) as create_schemas,
         as_file(
             files("ecommercedeliveryrisk.sql.migrations").joinpath("002_create_raw_tables.sql")
-        ),
+        ) as raw_tables_sql,
         as_file(
             files("ecommercedeliveryrisk.sql.migrations").joinpath("003_create_staging_tables.sql")
-        ),
-        as_file(files("ecommercedeliveryrisk.sql.staging").joinpath("load_staging_tables.sql")) as (
-            create_schemas,
-            raw_tables_sql,
-            staging_tables_sql,
-            load_staging_tables_sql,
-        ),
+        ) as staging_tables_sql,
+        as_file(
+            files("ecommercedeliveryrisk.sql.staging").joinpath("load_staging_tables.sql")
+        ) as load_staging_tables_sql,
+        connect_to_database() as connection,
     ):
-        with connect_to_database() as connection:
-            execute_sql_file(connection=connection, sql_file=create_schemas)
-            execute_sql_file(connection=connection, sql_file=raw_tables_sql)
-            execute_sql_file(connection=connection, sql_file=staging_tables_sql)
+        execute_sql_file(connection=connection, sql_file=create_schemas)
+        execute_sql_file(connection=connection, sql_file=raw_tables_sql)
+        execute_sql_file(connection=connection, sql_file=staging_tables_sql)
 
-            ingest_raw_data(
-                connection=connection,
-                raw_data_dir=settings.raw_data_dir,
-                manifests_data_dir=settings.manifests_data_dir,
-            )
+        ingest_raw_data(
+            connection=connection,
+            raw_data_dir=settings.raw_data_dir,
+            manifests_data_dir=settings.manifests_data_dir,
+        )
 
-            execute_sql_file(connection=connection, sql_file=load_staging_tables_sql)
+        execute_sql_file(connection=connection, sql_file=load_staging_tables_sql)
