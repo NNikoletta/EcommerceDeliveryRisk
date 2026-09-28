@@ -42,7 +42,7 @@ def test_cli_modes(tmp_path, monkeypatch, arguments, expected_replace, download,
     else:
         mock_download.assert_not_called()
 
-    if validate:
+    if validate or ingest:
         mock_validate.assert_called_once_with(
             data_dir=settings.raw_data_dir, manifests_dir=settings.manifests_data_dir
         )
@@ -60,6 +60,6 @@ def test_cli_rejects_conflicting_modes():
     parser = cli.build_parser()
 
     with pytest.raises(SystemExit) as error:
-        parser.parse_args(["--replace-existing", "--validate-only"])
+        parser.parse_args(["--replace-existing", "--validate"])
 
     assert error.value.code == 2

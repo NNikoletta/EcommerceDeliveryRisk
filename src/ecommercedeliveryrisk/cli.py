@@ -72,6 +72,8 @@ def main(argv: Sequence[str] | None = None) -> None:
             validate_data(data_dir=settings.raw_data_dir, manifests_dir=settings.manifests_data_dir)
             compare_manifests(manifests_dir=settings.manifests_data_dir)
         elif args.ingest:
+            validate_data(data_dir=settings.raw_data_dir, manifests_dir=settings.manifests_data_dir)
+            compare_manifests(manifests_dir=settings.manifests_data_dir)
             run_ingestion(settings=settings)
 
     except (FileNotFoundError, ValueError) as error:
