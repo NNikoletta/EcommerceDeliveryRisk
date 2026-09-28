@@ -95,6 +95,16 @@ def integration_settings(tmp_path) -> Settings:
     if os.getenv("RUN_POSTGRES_INTEGRATION") != "1":
         pytest.skip("PostgreSQL integration testing is disabled.")
 
+    database_name = os.getenv("POSTGRES_DB", "").strip()
+
+    if database_name != "ecommerce_test":
+        pytest.fail(
+            "Refusing to run PostgreSQL integraion test:"
+            "POSTGRES+DB must be 'ecommerce_test',"
+            f"but received {database_name!r}.",
+            pytrace=False,
+        )
+
     raw_data_dir = tmp_path / "raw"
     manifests_data_dir = tmp_path / "manifests"
 
