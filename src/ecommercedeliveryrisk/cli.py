@@ -77,7 +77,7 @@ def main(argv: Sequence[str] | None = None) -> None:
             run_ingestion(settings=settings)
 
     except (FileNotFoundError, ValueError) as error:
-        logger.error("Pipeline failed: %s", error)
+        logger.exception("Pipeline failed: %s", error)
         raise SystemExit(1) from None
     except Exception:
         logger.exception("Pipeline failed unexpectedly.")
