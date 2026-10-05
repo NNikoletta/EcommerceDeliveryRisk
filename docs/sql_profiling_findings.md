@@ -62,9 +62,11 @@ with an approximately 8.114% of the total data belonging to the target class.
 
 This check aims to filter out any inconsistencies in the timeline of the orders. Orders need to be purchased, approved, sent to carrier, and delivered. An estimated delivery date should also be 
 generated before the items are delivered. The table below shows if there are any orders that have conflicting timestamps.
-One can see that no order was approved or delivered before the purchase timestamp. However, there are orders that were forwarded to the carrier before their status became approved.
-There are also multiple orders that were delivered to the customer before they seem to have been delivered to the carrier, and there are also multiple orders that
-were delivered without an estimated delivery date being available.
+One can see that no orders were approved before purchase, and no estimated delivery dates occurred before purchase. 
+However, 1359 carrier timestamps precede approval timestamps, 23 customer-delivery timestamps precede carrier timestamps, 
+and eight delivered-status orders do not have a recorded customer-delivery timestamp. 
+The first two groups will remain in the modeling population, but the inconsistent timestamps will not be used to derive timeline-duration features. 
+The eight orders without a recorded delivery timestamp will be excluded from both modeling datasets under this project.
 
 | check_name                             | invalid_row_count |
 |----------------------------------------|-------------------|
