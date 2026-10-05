@@ -8,7 +8,7 @@
 
 This file intends to document the findings of the SQL profiling done during the data preparation process.
 
-The source .sql file can be found in the sql/profiling/001_profile_staging_data.sql path.
+The source .sql file can be found in the src/ecommercedeliveryrisk/sql/profiling/001_profile_staging_data.sql path.
 
 ## SQL queries and their results
 
@@ -76,8 +76,7 @@ were delivered without an estimated delivery date being available.
 
 The first two cases depicted in the table above will remain in the modeling pool, since the orders were delivered to the carrier or to the customer.
 The first to cases indicate a possible glitch in the system that tracks the package, but beside this mic up there seems to be no other indications that the package is
-not inside the delivery pipeline. However, the last case (delivered_status_without_deliver_date) will be excluded from the late-delivery pool, and
-will only remain in the non-delivery model. The reason behind this, is the delivered status might be an indication of a package being delivered to the wrong location or potentially lost in the process.
+not inside the delivery pipeline. However, the last case (delivered_status_without_deliver_date) will be excluded from both models.
 
 ### 5. One-to-many connections
 
@@ -111,16 +110,16 @@ The following table shows that all the values were verified which allows for a c
 ### 7. Geolocation checks
 
 To see if there are any aggregations needed before joining the geolocation table to the customers and sellers tables, a check is performed to see how many zip codes have multiple different types of details belonging to them.
-The table below shows that there are several zip codes that can span over multiple cities, states, coordinates, locations.
+The table below shows that there are several zip codes that can span over multiple cities, states, locations.
 
-| unique_zip_code_prefixes | zip_code_prefixes_with_multiple_coordinates | zip_code_prefixes_with_multiple_cities | zip_code_prefixes_with_multiple_states | maximum_locations_per_zip |
-|--------------------------|---------------------------------------------|----------------------------------------|----------------------------------------|---------------------------|
-| 19015                    | 17972                                       | 8555                                   | 8                                      | 1146                      |
+| unique_zip_code_prefixes | zip_code_prefixes_with_multiple_records | zip_code_prefixes_with_multiple_cities | zip_code_prefixes_with_multiple_states | maximum_locations_per_zip |
+|--------------------------|-----------------------------------------|----------------------------------------|----------------------------------------|---------------------------|
+| 19015                    | 17972                                   | 8555                                   | 8                                      | 1146                      |
 
 ## Decisions
 
 * Order items will be aggregated before a join can be performed to orders.
 * Payments will be aggregated before a join can be performed to orders.
-* Reviews with multiple records will be aggregated.
+* Reviews will not be used as current-order features because they occur after prediction time. They may only contribute to point-in-time historical features when the review was created before the examined order’s approval time.
 * Geolocation details will be aggregated to ZIP-prefix levels.
 * Timeline anomalies need to be handled as described earlier.

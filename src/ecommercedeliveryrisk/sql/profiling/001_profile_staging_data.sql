@@ -190,7 +190,7 @@ SELECT
     COUNT(*) AS unique_zip_code_prefixes,
     COUNT(*) FILTER (
         WHERE location_count > 1
-    ) AS zip_code_prefixes_with_multiple_coordinates,
+    ) AS zip_code_prefixes_with_multiple_records,
     COUNT(*) FILTER (
         WHERE city_count > 1
     ) AS zip_code_prefixes_with_multiple_cities,
