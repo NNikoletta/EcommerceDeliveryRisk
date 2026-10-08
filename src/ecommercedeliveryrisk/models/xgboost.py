@@ -38,8 +38,8 @@ class XGBoostModel:
         self,
         x_train: np.ndarray,
         y_train: np.ndarray,
-        x_valid: np.ndarray = None,
-        y_valid: np.ndarray = None,
+        x_valid: np.ndarray | None = None,
+        y_valid: np.ndarray | None = None,
     ) -> None:
         if x_valid is None and y_valid is None:
             self.model.fit(x_train, y_train)

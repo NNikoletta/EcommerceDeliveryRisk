@@ -10,7 +10,9 @@ from ecommercedeliveryrisk.utils import ensure_dir
 logger = logging.getLogger(__name__)
 
 
-def create_evaluation_split(targets: np.ndarray, config: SplitConfig):
+def create_evaluation_split(
+    targets: np.ndarray, config: SplitConfig
+) -> tuple[np.ndarray, np.ndarray | None, np.ndarray]:
     all_indices = np.arange(len(targets))
     training_pool_fraction = 1 - config.validation_fraction + config.test_fraction
     training_pool_size = round(len(targets) * training_pool_fraction)
@@ -31,9 +33,13 @@ def create_evaluation_split(targets: np.ndarray, config: SplitConfig):
             stratify=targets,
         )
 
-        return train_indices, validation_indices, test_indices
+        return train_indices, np.asarray(validation_indices), np.asarray(test_indices)
 
-    return train_indices, test_pool_indices
+    return (
+        train_indices,
+        None,
+        test_pool_indices,
+    )
 
 
 def save_split(
@@ -41,7 +47,7 @@ def save_split(
     train_indices: np.ndarray,
     test_indices: np.ndarray,
     config: SplitConfig,
-    validation_indices: np.ndarray = None,
+    validation_indices: np.ndarray | None = None,
 ) -> None:
     validate_split(
         targets=targets,
@@ -100,7 +106,7 @@ def validate_split(
     targets: np.ndarray,
     train_indices: np.ndarray,
     test_indices: np.ndarray,
-    validation_indices: np.ndarray = None,
+    validation_indices: np.ndarray | None = None,
 ) -> None:
 
     logger.info("Begin validating split data.")
@@ -115,7 +121,7 @@ def validate_split(
     if validation_indices is not None:
         splits = {"train": train_indices, "validation": validation_indices, "test": test_indices}
     else:
-        splits = {"train": train_indices, "validation": test_indices}
+        splits = {"train": train_indices, "test": test_indices}
 
     for split_name, indices in splits.items():
         if not isinstance(indices, np.ndarray):
@@ -182,6 +188,7 @@ def load_split(split_id: str, targets: np.ndarray, validation: bool = True):
     else:
         expected_arrays = {"train_indices", "test_indices"}
 
+    validation_indices: np.ndarray | None = None
     with np.load(str(indices_path)) as split_data:
         missing_arrays = expected_arrays.difference(split_data.files)
 
