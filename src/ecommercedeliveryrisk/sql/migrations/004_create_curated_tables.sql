@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS curated.order_features (
 
     customer_state TEXT NOT NULL,
     customer_zip_code_prefix TEXT NOT NULL,
+    customer_latitude DOUBLE PRECISION,
+    customer_longitude DOUBLE PRECISION,
 
     purchase_hour SMALLINT NOT NULL,
     purchase_day_of_week SMALLINT NOT NULL,
@@ -18,7 +20,13 @@ CREATE TABLE IF NOT EXISTS curated.order_features (
     item_count INTEGER,
     distinct_product_count INTEGER,
     distinct_category_count INTEGER,
+
     seller_count INTEGER,
+    distinct_seller_state_count INTEGER,
+    has_cross_state_seller BOOLEAN,
+
+    average_seller_distance_km NUMERIC(12, 2),
+    maximum_seller_distance_km NUMERIC(12, 2),
 
     total_item_value NUMERIC(12, 2),
     total_freight_value NUMERIC(12, 2),

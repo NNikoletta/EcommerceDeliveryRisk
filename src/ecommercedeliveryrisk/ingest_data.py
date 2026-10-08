@@ -182,13 +182,20 @@ def run_ingestion(settings: Settings) -> None:
             files("ecommercedeliveryrisk.sql.migrations").joinpath("003_create_staging_tables.sql")
         ) as staging_tables_sql,
         as_file(
+            files("ecommercedeliveryrisk.sql.migrations").joinpath("004_create_curated_tables.sql")
+        ) as curated_tables_sql,
+        as_file(
             files("ecommercedeliveryrisk.sql.staging").joinpath("load_staging_tables.sql")
         ) as load_staging_tables_sql,
+        as_file(
+            files("ecommercedeliveryrisk.sql.curated").joinpath("load_order_datasets.sql")
+        ) as load_curated_tables_sql,
         connect_to_database() as connection,
     ):
         execute_sql_file(connection=connection, sql_file=create_schemas)
         execute_sql_file(connection=connection, sql_file=raw_tables_sql)
         execute_sql_file(connection=connection, sql_file=staging_tables_sql)
+        execute_sql_file(connection=connection, sql_file=curated_tables_sql)
 
         ingest_raw_data(
             connection=connection,
@@ -197,3 +204,4 @@ def run_ingestion(settings: Settings) -> None:
         )
 
         execute_sql_file(connection=connection, sql_file=load_staging_tables_sql)
+        execute_sql_file(connection=connection, sql_file=load_curated_tables_sql)

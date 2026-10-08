@@ -37,7 +37,7 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument(
         "--ingest",
         action="store_true",
-        help="Load the validated raw CSV files into PostgreSQL.",
+        help="Load the validated raw CSV files into PostgreSQL and create the curated datasets for the ML model.",
     )
 
     return parser

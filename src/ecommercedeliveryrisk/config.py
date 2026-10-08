@@ -5,6 +5,25 @@ from typing import TypedDict
 
 
 @dataclass(frozen=True)
+class SplitConfig:
+    split_id: str = "fixed_split_v1"
+    split_seed: int = 8102026
+    test_fraction: float = 0.10
+    validation_fraction: float = 0.10
+
+
+@dataclass(frozen=True)
+class XGBoostConfig:
+    learning_rate: float = 0.1
+    n_estimators: int = 100
+    max_depth: int = 3
+    random_state: int = 42
+    gamma: float = 0
+    min_child_weight: float = 1
+    ratio: float = 1
+
+
+@dataclass(frozen=True)
 class ExpectedFiles:
     customers: str = "olist_customers_dataset.csv"
     geolocation: str = "olist_geolocation_dataset.csv"
@@ -42,6 +61,7 @@ project_root = Path(__file__).resolve().parents[2]
 
 raw_data_dir = project_root / "data" / "raw"
 manifests_data_dir = project_root / "data" / "manifests"
+split_dir = project_root / "data" / "splits"
 
 
 @dataclass(frozen=True)
