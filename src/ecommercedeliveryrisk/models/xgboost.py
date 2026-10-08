@@ -1,6 +1,7 @@
 import logging
 
 import numpy as np
+import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import accuracy_score, log_loss
 
@@ -38,9 +39,9 @@ class XGBoostModel:
 
     def train(
         self,
-        x_train: np.ndarray,
+        x_train: pd.DataFrame,
         y_train: np.ndarray,
-        x_valid: np.ndarray | None = None,
+        x_valid: pd.DataFrame | None = None,
         y_valid: np.ndarray | None = None,
     ) -> None:
         if x_valid is None and y_valid is None:
@@ -48,7 +49,7 @@ class XGBoostModel:
         else:
             self.model.fit(x_train, y_train, eval_set=[(x_valid, y_valid)])
 
-    def predict(self, x_test: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def predict(self, x_test: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         predicted_classes = self.model.predict(x_test)
         predicted_probabilities = self.model.predict_proba(x_test)[:, 1]
         return predicted_classes, predicted_probabilities

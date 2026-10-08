@@ -27,12 +27,9 @@ def calculate_metrics(y_test, predicted_classes, predicted_probabilities) -> dic
 
 
 def log_metrics(metrics: dict[str, float]) -> None:
-    logger.info("F1 score: ", round(metrics["f1"], ndigits=3))
+    logger.info(f"F1 score: {round(metrics['f1'], ndigits=3)}")
+    logger.info(f"Recall score: {round(metrics['recall'], ndigits=3)}")  # out of all yes cases, how many did the model catch
     logger.info(
-        "Recall score: ", round(metrics["recall"], ndigits=3)
-    )  # out of all yes cases, how many did the model catch
-    logger.info(
-        "Precision score: ", round(metrics["precision"], ndigits=3)
-    )  # when the model says yes, how often is it right
-    logger.info("Average precision: ", round(metrics["avg_precision"], ndigits=3))
-    logger.info("ROC-AUC: ", round(metrics["roc_auc"], ndigits=3))
+        f"Precision score: {round(metrics['precision'], ndigits=3)}")  # when the model says yes, how often is it right
+    logger.info(f"Average precision: {round(metrics['avg_precision'], ndigits=3)}")
+    logger.info(f"ROC-AUC: {round(metrics['roc_auc'], ndigits=3)}")

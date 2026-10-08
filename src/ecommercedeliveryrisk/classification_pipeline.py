@@ -48,9 +48,10 @@ def optimization_pipeline(model_name):
     train_indices, validation_indices, _ = load_split(
         split_id="fixed_pipeline_test_split_v1", targets=targets
     )
-    x_train = features[train_indices]
-    x_valid = features[validation_indices]
-    # x_test = features[test_indices]
+
+    x_train = features.iloc[train_indices].copy()
+    x_valid = features.iloc[validation_indices].copy()
+    # x_test = features.iloc[test_indices].copy()
 
     y_train = targets[train_indices]
     y_valid = targets[validation_indices]
@@ -78,11 +79,11 @@ def final_evaluation_pipeline(model_name):
     features, targets = load_dataset(model_name=model_name)
     train_indices, test_indices = load_split(split_id="fixed_final_eval_split_v1", targets=targets)
 
-    x_train = features[train_indices[0], :]
-    x_test = features[test_indices[0], :]
+    x_train = features.iloc[train_indices].copy()
+    x_test = features.iloc[test_indices].copy()
 
-    y_train = targets[train_indices[0]]
-    y_test = targets[test_indices[0]]
+    y_train = targets[train_indices]
+    y_test = targets[test_indices]
 
     xgboost_config = XGBoostConfig()
 
