@@ -11,6 +11,9 @@ class SplitConfig:
     test_fraction: float = 0.10
     validation_fraction: float = 0.10
 
+@dataclass(frozen=True)
+class CatBoostConfig:
+    pass
 
 @dataclass(frozen=True)
 class XGBoostConfig:
@@ -21,6 +24,7 @@ class XGBoostConfig:
     gamma: float = 0
     min_child_weight: float = 1
     ratio: float = 1
+    enable_categorical = True
 
 
 @dataclass(frozen=True)

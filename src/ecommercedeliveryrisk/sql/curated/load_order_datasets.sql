@@ -145,6 +145,9 @@ INSERT INTO curated.order_features(
     purchase_day_of_week,
     purchase_month,
     approval_delay_hours,
+    approval_hour,
+    approval_day_of_week,
+    approval_month,
     promised_delivery_days,
     item_count,
     distinct_product_count,
@@ -197,6 +200,16 @@ SELECT
         )::NUMERIC,
         2
     ) AS approval_delay_hours,
+
+    EXTRACT(
+        HOUR FROM orders.order_approved_at
+    )::SMALLINT AS approval_hour,
+    EXTRACT(
+        DOW FROM orders.order_approved_at
+    )::SMALLINT AS approval_day_of_week,
+    EXTRACT(
+        MONTH FROM orders.order_approved_at
+    )::SMALLINT AS approval_month,
 
     ROUND(
         (

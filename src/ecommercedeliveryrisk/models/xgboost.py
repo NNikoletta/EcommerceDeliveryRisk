@@ -18,6 +18,7 @@ class XGBoostModel:
         self.random_state = config.random_state
         self.min_child_weight = config.min_child_weight
         self.ratio = config.ratio
+        self.enable_categorical = config.enable_categorical
         self.model = xgb.XGBClassifier()
         self.build_model()
 
@@ -31,6 +32,7 @@ class XGBoostModel:
             random_state=self.random_state,
             min_child_weight=self.min_child_weight,
             scale_pos_weight=self.ratio,
+            enable_categorical=self.enable_categorical,
             eval_metric=["logloss"],
         )
 

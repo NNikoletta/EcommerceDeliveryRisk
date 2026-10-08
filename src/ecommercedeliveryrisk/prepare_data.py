@@ -14,9 +14,9 @@ def create_evaluation_split(
     targets: np.ndarray, config: SplitConfig
 ) -> tuple[np.ndarray, np.ndarray | None, np.ndarray]:
     all_indices = np.arange(len(targets))
-    training_pool_fraction = 1 - config.validation_fraction + config.test_fraction
+    training_pool_fraction = 1 - (config.validation_fraction + config.test_fraction)
     training_pool_size = round(len(targets) * training_pool_fraction)
-    train_indices = all_indices[0 : training_pool_size - 1]
+    train_indices = all_indices[0:training_pool_size]
     test_pool_indices = np.setdiff1d(
         all_indices, train_indices
     )  # indices that are in all_indices but not in training_indices
@@ -30,7 +30,7 @@ def create_evaluation_split(
             test_pool_indices,
             test_size=relative_test_fraction,
             random_state=config.split_seed,
-            stratify=targets,
+            stratify=targets[test_pool_indices],
         )
 
         return train_indices, np.asarray(validation_indices), np.asarray(test_indices)

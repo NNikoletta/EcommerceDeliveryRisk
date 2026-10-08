@@ -41,7 +41,8 @@ def load_dataset(model_name) -> tuple:
     with connect_to_database() as connection:
         delivery_data = load_model_dataset(connection=connection, model_name=model_name)
 
-    features = delivery_data.drop(columns=["target", "order_id", "customer_unique_id"]).to_numpy()
+    delivery_data["customer_state"] = delivery_data["customer_state"].astype('category')
+    features = delivery_data.drop(columns=["target", "order_id", "customer_unique_id", "order_purchase_timestamp", "order_approved_at"]).to_numpy()
 
     targets = delivery_data["target"].to_numpy()
 

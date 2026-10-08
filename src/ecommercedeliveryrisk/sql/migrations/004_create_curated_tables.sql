@@ -15,6 +15,10 @@ CREATE TABLE IF NOT EXISTS curated.order_features (
     purchase_month SMALLINT NOT NULL,
 
     approval_delay_hours NUMERIC(12, 2) NOT NULL,
+    approval_hour SMALLINT NOT NULL,
+    approval_day_of_week SMALLINT NOT NULL,
+    approval_month SMALLINT NOT NULL,
+
     promised_delivery_days NUMERIC(12, 2) NOT NULL,
 
     item_count INTEGER,
