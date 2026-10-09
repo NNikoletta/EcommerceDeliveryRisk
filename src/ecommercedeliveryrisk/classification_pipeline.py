@@ -123,7 +123,7 @@ def optimization_pipeline(model_name):
             {
                 str(probability): (str(label), str(true_label))
                 for probability, label, true_label in zip(
-                    predicted_probabilities, predicted_classes, y_train, strict=True
+                    predicted_probabilities, predicted_classes, y_valid, strict=True
                 )
             },
             "results.json",
