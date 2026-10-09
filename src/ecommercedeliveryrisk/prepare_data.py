@@ -2,7 +2,6 @@ import json
 import logging
 
 import numpy as np
-from sklearn.model_selection import train_test_split
 
 from ecommercedeliveryrisk.config import SplitConfig, split_dir
 from ecommercedeliveryrisk.utils import ensure_dir
@@ -16,24 +15,23 @@ def create_evaluation_split(
     all_indices = np.arange(len(targets))
     training_pool_fraction = 1 - (config.validation_fraction + config.test_fraction)
     training_pool_size = round(len(targets) * training_pool_fraction)
+
     train_indices = all_indices[0:training_pool_size]
+
     test_pool_indices = np.setdiff1d(
         all_indices, train_indices
     )  # indices that are in all_indices but not in training_indices
 
     if config.validation_fraction != 0:
-        relative_test_fraction = (
-            1 / (config.validation_fraction + config.test_fraction) * config.test_fraction
+        relative_validation_fraction = (
+            1 / (config.validation_fraction + config.test_fraction) * config.validation_fraction
         )
 
-        test_indices, validation_indices = train_test_split(
-            test_pool_indices,
-            test_size=relative_test_fraction,
-            random_state=config.split_seed,
-            stratify=targets[test_pool_indices],
-        )
+        validation_pool_size = round(len(test_pool_indices) * relative_validation_fraction)
+        validation_indices = test_pool_indices[0:validation_pool_size]
+        test_indices = test_pool_indices[validation_pool_size : len(test_pool_indices)]
 
-        return train_indices, np.asarray(validation_indices), np.asarray(test_indices)
+        return train_indices, validation_indices, test_indices
 
     return (
         train_indices,
@@ -77,22 +75,16 @@ def save_split(
             str(indices_path), train_indices=train_indices, test_indices=test_indices
         )
 
-    def class_counts(indices):
-        labels, counts = np.unique(targets[indices], return_counts=True)
-        return {str(int(label)): int(count) for label, count in zip(labels, counts, strict=True)}
-
     metadata = {
         "split_id": config.split_id,
-        "strategy": "chronological"
-        if validation_indices is not None
-        else "chronological_train_random_stratified_validation",
-        "split_seed": config.split_seed if validation_indices is not None else None,
+        "strategy": "chronological",
+        "split_seed": None,
         "test_fraction": config.test_fraction,
         "validation_fraction": config.validation_fraction,
         "sample_counts": {
             "train": len(train_indices),
             "validation": len(validation_indices) if validation_indices is not None else 0,
-            "test": class_counts(test_indices),
+            "test": len(test_indices),
         },
     }
 

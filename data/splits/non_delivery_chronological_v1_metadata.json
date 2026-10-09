@@ -1,15 +1,12 @@
 {
-  "split_id": "fixed_pipeline_test_split_v1",
+  "split_id": "non_delivery_chronological_v1",
   "strategy": "chronological",
-  "split_seed": 8102026,
+  "split_seed": null,
   "test_fraction": 0.1,
   "validation_fraction": 0.1,
   "sample_counts": {
     "train": 78039,
     "validation": 9755,
-    "test": {
-      "0": 9695,
-      "1": 60
-    }
+    "test": 9755
   }
 }

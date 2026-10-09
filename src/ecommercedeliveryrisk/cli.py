@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 from ecommercedeliveryrisk.classification_pipeline import (
     create_final_eval_split,
     create_optimization_split,
-    final_evaluation_pipeline,
     optimization_pipeline,
 )
 from ecommercedeliveryrisk.config import load_settings, project_root
@@ -64,12 +63,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run the classification pipeline for optimization purposes and testing on a previously saved fixed data split.",
     )
 
-    mode.add_argument(
-        "--final-evaluation",
-        action="store_true",
-        help="Run final evaluation on a previously saved fixed data split.",
-    )
-
     return parser
 
 
@@ -94,7 +87,6 @@ def main(argv: Sequence[str] | None = None) -> None:
             and not args.create_optimization_split
             and not args.create_final_eval_split
             and not args.optimization_pipeline
-            and not args.final_evaluation
         ):
             download_raw_data(settings=settings, replace_existing=False)
             validate_data(data_dir=settings.raw_data_dir, manifests_dir=settings.manifests_data_dir)
@@ -115,8 +107,6 @@ def main(argv: Sequence[str] | None = None) -> None:
             create_final_eval_split("non_delivery")
         elif args.optimization_pipeline:
             optimization_pipeline("non_delivery")
-        elif args.final_evaluation:
-            final_evaluation_pipeline("non_delivery")
 
     except (FileNotFoundError, ValueError) as error:
         logger.exception("Pipeline failed: %s", error)

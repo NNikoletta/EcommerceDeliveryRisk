@@ -21,7 +21,7 @@ def load_model_dataset(connection: psycopg.Connection, model_name: ModelName) ->
         """
         SELECT * 
         FROM curated.{}
-        ORDER BY order_approved_at ASC;
+        ORDER BY order_approved_at ASC, order_id ASC;
         """
     ).format(sql.Identifier(view_name))
 
@@ -41,7 +41,15 @@ def load_dataset(model_name) -> tuple:
     with connect_to_database() as connection:
         delivery_data = load_model_dataset(connection=connection, model_name=model_name)
 
-    features = delivery_data.drop(columns=["target", "order_id", "customer_unique_id", "order_purchase_timestamp", "order_approved_at"]).copy()
+    features = delivery_data.drop(
+        columns=[
+            "target",
+            "order_id",
+            "customer_unique_id",
+            "order_purchase_timestamp",
+            "order_approved_at",
+        ]
+    ).copy()
 
     categorical_columns = ["customer_state", "customer_zip_code_prefix"]
     features[categorical_columns] = features[categorical_columns].astype("category")

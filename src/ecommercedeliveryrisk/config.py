@@ -7,13 +7,14 @@ from typing import TypedDict
 @dataclass(frozen=True)
 class SplitConfig:
     split_id: str = "fixed_split_v1"
-    split_seed: int = 8102026
     test_fraction: float = 0.10
     validation_fraction: float = 0.10
+
 
 @dataclass(frozen=True)
 class CatBoostConfig:
     pass
+
 
 @dataclass(frozen=True)
 class XGBoostConfig:
@@ -24,7 +25,7 @@ class XGBoostConfig:
     gamma: float = 0
     min_child_weight: float = 1
     ratio: float = 1
-    enable_categorical = True
+    enable_categorical: bool = True
 
 
 @dataclass(frozen=True)
