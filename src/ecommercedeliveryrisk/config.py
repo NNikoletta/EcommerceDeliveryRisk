@@ -23,9 +23,11 @@ class XGBoostConfig:
     max_depth: int = 3
     random_state: int = 42
     gamma: float = 0
-    min_child_weight: float = 1
+    min_child_weight: float = 1  # need to be increased when heavily imbalanced data
+    max_delta_step: int = 0  # forces tree leaf updates to be conservative
     ratio: float = 1
     enable_categorical: bool = True
+    threshold: float = 0.5
 
 
 @dataclass(frozen=True)

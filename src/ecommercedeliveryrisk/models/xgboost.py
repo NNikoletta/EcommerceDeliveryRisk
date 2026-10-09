@@ -18,7 +18,9 @@ class XGBoostModel:
         self.gamma = config.gamma
         self.random_state = config.random_state
         self.min_child_weight = config.min_child_weight
+        self.max_delta_step = config.max_delta_step
         self.ratio = config.ratio
+        self.threshold = config.threshold
         self.enable_categorical = config.enable_categorical
         self.model = xgb.XGBClassifier()
         self.build_model()
@@ -32,6 +34,7 @@ class XGBoostModel:
             gamma=self.gamma,
             random_state=self.random_state,
             min_child_weight=self.min_child_weight,
+            max_delta_step=self.max_delta_step,
             scale_pos_weight=self.ratio,
             enable_categorical=self.enable_categorical,
             eval_metric=["logloss"],
@@ -50,8 +53,8 @@ class XGBoostModel:
             self.model.fit(x_train, y_train, eval_set=[(x_valid, y_valid)])
 
     def predict(self, x_test: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
-        predicted_classes = self.model.predict(x_test)
         predicted_probabilities = self.model.predict_proba(x_test)[:, 1]
+        predicted_classes = (predicted_probabilities >= self.threshold).astype(int)
         return predicted_classes, predicted_probabilities
 
     def evaluate(

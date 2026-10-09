@@ -65,23 +65,27 @@ def optimization_pipeline(model_name):
 
     x_train = features.iloc[train_indices].copy()
     x_valid = features.iloc[validation_indices].copy()
-    # x_test = features.iloc[test_indices].copy()
 
     y_train = targets[train_indices]
     y_valid = targets[validation_indices]
-    # y_test = targets[test_indices]
 
-    xgboost_config = XGBoostConfig()
+    # values, counts = np.unique(y_train, return_counts=True)
+    # entry_count = dict(zip(values, counts))
+    # negative_class = entry_count[0]
+    # positive_class = entry_count[1]
+    #
+    # ratio = sqrt(negative_class/positive_class)
+    xgboost_config = XGBoostConfig(max_delta_step=1, min_child_weight=10, threshold=0.5)
 
-    with mlflow.start_run(run_name="xgboost_baseline_v1"):
-        mlflow.set_tags({"task": model_name, "model_family": "xgboost", "run_role": "baseline"})
+    with mlflow.start_run(run_name="xgboost_non_delivery_v1"):
+        mlflow.set_tags({"task": model_name, "model_family": "xgboost", "run_role": "tuning"})
 
         mlflow.log_params(
             {
                 **asdict(xgboost_config),
                 "split_id": split_id,
-                "decision_threshold": 0.5,
-                "training_rows": len(y_valid),
+                "decision_threshold": xgboost_config.threshold,
+                "training_rows": len(y_train),
             }
         )
 
@@ -114,6 +118,15 @@ def optimization_pipeline(model_name):
         mlflow.log_metric("validation_positive_rate", float(y_valid.mean()))
         mlflow.log_dict(
             {column: str(dtype) for column, dtype in x_train.dtypes.items()}, "feature_dtypes.json"
+        )
+        mlflow.log_dict(
+            {
+                str(probability): (str(label), str(true_label))
+                for probability, label, true_label in zip(
+                    predicted_probabilities, predicted_classes, y_train, strict=True
+                )
+            },
+            "results.json",
         )
         xgboost.log_model(xgb_model=model.model, name="model", model_format="json")
         mlflow.log_artifact(str(project_root / "uv.lock"), artifact_path="environment")
