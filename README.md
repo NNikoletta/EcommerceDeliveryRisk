@@ -56,7 +56,7 @@ Two curated tables were created to accommodate the differences in data that need
 
 Both datasets are highly imbalanced.
 
-To explore the parts of the curated data used in this project [download the interactive Power BI report](reports/Ecommerce_Delivery_Performance.pbix).
+To explore the parts of the curated data used in this project [download the interactive Power BI report](reports/delivery_performance_report.pbix).
 
 Open the report in Power BI Desktop to explore the date and state filters. The file includes imported data; refreshing requires
 the project's PostgreSQL database.
