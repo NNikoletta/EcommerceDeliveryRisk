@@ -4,7 +4,7 @@ This project aims to implement an end-to-end pipeline for delivery risk predicti
 
 ## Project Status
 
-Project is in its experimental stage focusing on tuning the ML model used for classification.
+The data engineering and Power BI reporting workflows are complete. Machine-learning model development and tuning remain experimental.
 
 ## A little bit about the data
 
